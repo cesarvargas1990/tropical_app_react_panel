@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 
 // Servicios
 import { getProducts } from "../services/productsService"
@@ -23,6 +23,9 @@ function MainApp() {
 
   const [showCart, setShowCart] = useState(false)
   const [showRecent, setShowRecent] = useState(false)
+  const scannerInputRef = useRef(null)
+  const scannerBufferRef = useRef("")
+  const [scannerValue, setScannerValue] = useState("")
 
   useEffect(() => { loadProducts() }, [])
 
@@ -51,6 +54,26 @@ function MainApp() {
     cart.addItemDirect(match, { fromSocket: true })
     return true
   }, [originalProducts, cart.addItemDirect])
+  const triggerSocketEvent = useCallback(
+    async (productId) => {
+      const base = import.meta.env.VITE_EVENT_BASE_URL
+      if (!base) {
+        console.warn("VITE_EVENT_BASE_URL no está configurado; no se envía evento.")
+        return
+      }
+
+      const url = `${base}${encodeURIComponent(productId)}`
+      try {
+        console.info("Enviando evento a:", url, "(cors)")
+        window.__lastEventUrl = url
+        const res = await fetch(url, { method: "GET" })
+        window.__lastEventResponse = res?.status ?? 0
+      } catch (error) {
+        console.warn("No se pudo notificar al socket con el código escaneado", error)
+      }
+    },
+    []
+  )
 
   useProductsRealtime({
     onReload: loadProducts,
@@ -63,6 +86,59 @@ function MainApp() {
   const { register } = useSaleRegister({ registerSale })
 
   const cartButtonDisabled = cart.cartItems.length === 0
+
+  const resetScannerBuffer = useCallback(() => {
+    scannerBufferRef.current = ""
+    setScannerValue("")
+  }, [])
+
+  const handleScanSubmit = useCallback(
+    async (code) => {
+      const value = code.trim()
+      if (!value) return
+
+      console.info("Código escaneado capturado:", value)
+      await triggerSocketEvent(value)
+      // La adición se hará al recibir el evento del socket para evitar duplicados.
+    },
+    [triggerSocketEvent]
+  )
+
+  const handleScannerKey = useCallback(
+    (event) => {
+      const key = event.key || String.fromCharCode(event.keyCode || 0)
+      if (key === "Enter" || key === "\r" || key === "\n" || event.keyCode === 13) {
+        const value = scannerBufferRef.current
+        event.preventDefault()
+        resetScannerBuffer()
+        handleScanSubmit(value)
+        return
+      }
+
+      if (key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        scannerBufferRef.current += key
+        setScannerValue(scannerBufferRef.current)
+      }
+    },
+    [resetScannerBuffer, handleScanSubmit]
+  )
+
+  useEffect(() => {
+    const input = scannerInputRef.current
+    if (!input) return undefined
+
+    const focusInput = () => input.focus()
+    focusInput()
+
+    const handleWindowKey = (event) => handleScannerKey(event)
+    window.addEventListener("keydown", handleWindowKey)
+    input.addEventListener("blur", focusInput)
+
+    return () => {
+      window.removeEventListener("keydown", handleWindowKey)
+      input.removeEventListener("blur", focusInput)
+    }
+  }, [handleScannerKey])
 
   const handleRegisterSale = async () => {
   try {
@@ -114,6 +190,37 @@ function MainApp() {
           </button>
         </div>
       </header>
+      <div
+        style={{
+          position: "fixed",
+          bottom: 12,
+          right: 12,
+          background: "rgba(0,0,0,0.7)",
+          color: "#fff",
+          padding: "8px 10px",
+          borderRadius: 8,
+          fontSize: 12,
+          zIndex: 9999,
+        }}
+      >
+        <div style={{ marginBottom: 4, opacity: 0.85 }}>Escáner QR</div>
+        <input
+          ref={scannerInputRef}
+          value={scannerValue}
+          onChange={() => {}}
+          style={{
+            background: "rgba(255,255,255,0.12)",
+            border: "1px solid rgba(255,255,255,0.25)",
+            color: "#fff",
+            padding: "6px 8px",
+            borderRadius: 6,
+            width: 180,
+            outline: "none",
+          }}
+          placeholder="Esperando código..."
+          aria-label="Escáner QR"
+        />
+      </div>
 
       <main className="main">
         <div className="product-panel">
