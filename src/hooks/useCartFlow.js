@@ -41,7 +41,7 @@ export function useCartFlow({ originalProducts, matrix, getSizesFor, products })
       osc.start(now)
       osc.stop(now + 0.15)
     } catch (e) {
-      console.warn("No se pudo reproducir beep", e)
+      console.warn("No se pudo reproducir beep123", e)
     }
   }, [])
 
