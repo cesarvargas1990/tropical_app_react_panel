@@ -124,19 +124,11 @@ function MainApp() {
   )
 
   useEffect(() => {
-    const input = scannerInputRef.current
-    if (!input) return undefined
-
-    const focusInput = () => input.focus()
-    focusInput()
-
     const handleWindowKey = (event) => handleScannerKey(event)
     window.addEventListener("keydown", handleWindowKey)
-    input.addEventListener("blur", focusInput)
 
     return () => {
       window.removeEventListener("keydown", handleWindowKey)
-      input.removeEventListener("blur", focusInput)
     }
   }, [handleScannerKey])
 
@@ -190,37 +182,14 @@ function MainApp() {
           </button>
         </div>
       </header>
-      <div
-        style={{
-          position: "fixed",
-          bottom: 12,
-          right: 12,
-          background: "rgba(0,0,0,0.7)",
-          color: "#fff",
-          padding: "8px 10px",
-          borderRadius: 8,
-          fontSize: 12,
-          zIndex: 9999,
-        }}
-      >
-        <div style={{ marginBottom: 4, opacity: 0.85 }}>Escáner QR</div>
-        <input
-          ref={scannerInputRef}
-          value={scannerValue}
-          onChange={() => {}}
-          style={{
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.25)",
-            color: "#fff",
-            padding: "6px 8px",
-            borderRadius: 6,
-            width: 180,
-            outline: "none",
-          }}
-          placeholder="Esperando código..."
-          aria-label="Escáner QR"
-        />
-      </div>
+      <input
+        ref={scannerInputRef}
+        value={scannerValue}
+        onChange={() => {}}
+        style={{ position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none" }}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
 
       <main className="main">
         <div className="product-panel">
