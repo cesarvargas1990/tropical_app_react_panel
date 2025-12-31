@@ -110,22 +110,36 @@ function MainApp() {
     [addProductFromSocket, setShowCart]
   )
 
-  const handleScannerKey = useCallback(
-    (event) => {
-      const key = event.key || String.fromCharCode(event.keyCode || 0)
-      if (key === "Enter" || key === "\r" || key === "\n" || event.keyCode === 13) {
+  const processScanChar = useCallback(
+    (key) => {
+      if (key === "Enter" || key === "\r" || key === "\n") {
         const value = scannerBufferRef.current
-        event.preventDefault()
         resetScannerBuffer()
         handleScanSubmit(value)
         return
       }
 
-      if (key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      if (key.length === 1) {
         scannerBufferRef.current += key
       }
     },
-    [resetScannerBuffer, handleScanSubmit]
+    [handleScanSubmit, resetScannerBuffer]
+  )
+
+  const handleScannerKey = useCallback(
+    (event) => {
+      const key = event.key || String.fromCharCode(event.keyCode || 0)
+      if (key === "Enter" || key === "\r" || key === "\n" || event.keyCode === 13) {
+        event.preventDefault()
+        processScanChar("Enter")
+        return
+      }
+
+      if (key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        processScanChar(key)
+      }
+    },
+    [processScanChar]
   )
 
   useEffect(() => {
@@ -156,6 +170,29 @@ function MainApp() {
     }, 600)
     return () => clearInterval(interval)
   }, [focusScannerTrap])
+
+  useEffect(() => {
+    const el = focusTrapRef.current
+    if (!el) return
+
+    const handleInput = (e) => {
+      const val = e.target.value || ""
+      if (!val) return
+      for (const ch of val) {
+        processScanChar(ch)
+      }
+      e.target.value = ""
+    }
+
+    el.addEventListener("input", handleInput)
+    el.addEventListener("focus", focusScannerTrap)
+    focusScannerTrap()
+
+    return () => {
+      el.removeEventListener("input", handleInput)
+      el.removeEventListener("focus", focusScannerTrap)
+    }
+  }, [processScanChar, focusScannerTrap])
 
   const handleRegisterSale = async () => {
   try {
@@ -188,12 +225,20 @@ function MainApp() {
       <input
         ref={focusTrapRef}
         type="text"
-        tabIndex={-1}
+        tabIndex={0}
         aria-hidden="true"
         autoComplete="off"
         autoCorrect="off"
         spellCheck="false"
-        style={{ position: "fixed", opacity: 0, pointerEvents: "none", height: 0, width: 0 }}
+        autoFocus
+        inputMode="text"
+        style={{
+          position: "fixed",
+          opacity: 0.01,
+          height: 1,
+          width: 1,
+          zIndex: -1,
+        }}
       />
 
       <header className="top-bar">
