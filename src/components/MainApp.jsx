@@ -24,6 +24,8 @@ function MainApp() {
   const [showCart, setShowCart] = useState(false)
   const [showRecent, setShowRecent] = useState(false)
   const scannerBufferRef = useRef("")
+  const focusTrapRef = useRef(null)
+  const fullscreenRequestedRef = useRef(false)
 
   useEffect(() => { loadProducts() }, [])
 
@@ -69,6 +71,28 @@ function MainApp() {
     scannerBufferRef.current = ""
   }, [])
 
+  const focusScannerTrap = useCallback(() => {
+    try {
+      if (document.visibilityState !== "visible") return
+      const el = focusTrapRef.current
+      if (el && document.activeElement !== el) {
+        el.focus({ preventScroll: true })
+      }
+    } catch (err) {
+      console.warn("No se pudo enfocar el buffer del escáner", err)
+    }
+  }, [])
+
+  const requestFullscreenIfNeeded = useCallback(() => {
+    if (fullscreenRequestedRef.current) return
+    const docEl = document.documentElement
+    if (!docEl || docEl.requestFullscreen == null) return
+    fullscreenRequestedRef.current = true
+    docEl.requestFullscreen().catch(() => {
+      // Ignoramos fallos (por permisos/gestos)
+    })
+  }, [])
+
   const handleScanSubmit = useCallback(
     async (code) => {
       const value = code.trim()
@@ -107,11 +131,31 @@ function MainApp() {
   useEffect(() => {
     const handleWindowKey = (event) => handleScannerKey(event)
     window.addEventListener("keydown", handleWindowKey)
+    const handlePointer = () => {
+      focusScannerTrap()
+      requestFullscreenIfNeeded()
+    }
+    const handleVisibility = () => {
+      if (!document.hidden) focusScannerTrap()
+    }
+
+    document.addEventListener("pointerdown", handlePointer, true)
+    document.addEventListener("visibilitychange", handleVisibility)
 
     return () => {
       window.removeEventListener("keydown", handleWindowKey)
+      document.removeEventListener("pointerdown", handlePointer, true)
+      document.removeEventListener("visibilitychange", handleVisibility)
     }
-  }, [handleScannerKey])
+  }, [handleScannerKey, focusScannerTrap, requestFullscreenIfNeeded])
+
+  useEffect(() => {
+    focusScannerTrap()
+    const interval = setInterval(() => {
+      focusScannerTrap()
+    }, 600)
+    return () => clearInterval(interval)
+  }, [focusScannerTrap])
 
   const handleRegisterSale = async () => {
   try {
@@ -141,6 +185,17 @@ function MainApp() {
 
   return (
     <div className="app">
+      <input
+        ref={focusTrapRef}
+        type="text"
+        tabIndex={-1}
+        aria-hidden="true"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck="false"
+        style={{ position: "fixed", opacity: 0, pointerEvents: "none", height: 0, width: 0 }}
+      />
+
       <header className="top-bar">
         <div className="top-title">Panel de Ventas Tropical APP</div>
 
