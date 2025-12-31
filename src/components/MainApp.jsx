@@ -23,11 +23,22 @@ function MainApp() {
 
   const [showCart, setShowCart] = useState(false)
   const [showRecent, setShowRecent] = useState(false)
+  const [manualCode, setManualCode] = useState("")
+  const [isTouchDevice, setIsTouchDevice] = useState(() => {
+    if (typeof window === "undefined") return false
+    return "ontouchstart" in window || (navigator?.maxTouchPoints ?? 0) > 0
+  })
   const scannerBufferRef = useRef("")
   const focusTrapRef = useRef(null)
   const fullscreenRequestedRef = useRef(false)
 
   useEffect(() => { loadProducts() }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const hasTouch = "ontouchstart" in window || (navigator?.maxTouchPoints ?? 0) > 0
+    setIsTouchDevice(hasTouch)
+  }, [])
 
   const { getSizesFor } = useProductSizes(originalProducts)
 
@@ -72,6 +83,7 @@ function MainApp() {
   }, [])
 
   const focusScannerTrap = useCallback(() => {
+    if (isTouchDevice) return
     try {
       if (document.visibilityState !== "visible") return
       const el = focusTrapRef.current
@@ -81,9 +93,10 @@ function MainApp() {
     } catch (err) {
       console.warn("No se pudo enfocar el buffer del escáner", err)
     }
-  }, [])
+  }, [isTouchDevice])
 
   const requestFullscreenIfNeeded = useCallback(() => {
+    if (isTouchDevice) return
     if (fullscreenRequestedRef.current) return
     const docEl = document.documentElement
     if (!docEl || docEl.requestFullscreen == null) return
@@ -91,7 +104,7 @@ function MainApp() {
     docEl.requestFullscreen().catch(() => {
       // Ignoramos fallos (por permisos/gestos)
     })
-  }, [])
+  }, [isTouchDevice])
 
   const handleScanSubmit = useCallback(
     async (code) => {
@@ -143,6 +156,7 @@ function MainApp() {
   )
 
   useEffect(() => {
+    if (isTouchDevice) return
     const handleWindowKey = (event) => handleScannerKey(event)
     window.addEventListener("keydown", handleWindowKey)
     const handlePointer = () => {
@@ -163,17 +177,19 @@ function MainApp() {
       document.removeEventListener("click", handlePointer, true)
       document.removeEventListener("visibilitychange", handleVisibility)
     }
-  }, [handleScannerKey, focusScannerTrap, requestFullscreenIfNeeded])
+  }, [handleScannerKey, focusScannerTrap, requestFullscreenIfNeeded, isTouchDevice])
 
   useEffect(() => {
+    if (isTouchDevice) return
     focusScannerTrap()
     const interval = setInterval(() => {
       focusScannerTrap()
     }, 600)
     return () => clearInterval(interval)
-  }, [focusScannerTrap])
+  }, [focusScannerTrap, isTouchDevice])
 
   useEffect(() => {
+    if (isTouchDevice) return
     const el = focusTrapRef.current
     if (!el) return
 
@@ -194,23 +210,29 @@ function MainApp() {
       el.removeEventListener("input", handleInput)
       el.removeEventListener("focus", focusScannerTrap)
     }
-  }, [processScanChar, focusScannerTrap])
+  }, [processScanChar, focusScannerTrap, isTouchDevice])
+
+  const submitManualCode = useCallback(() => {
+    const value = manualCode.trim()
+    if (!value) return
+    handleScanSubmit(value)
+    setManualCode("")
+  }, [manualCode, handleScanSubmit])
 
   const handleRegisterSale = async () => {
-  try {
-    await register(cart.groupedItems)
-    
-    cart.clearCart()
-    setShowCart(false)
+    try {
+      await register(cart.groupedItems)
 
-  } catch (error) {
-    const Swal = (await import("sweetalert2")).default
-    Swal.fire({
-      title: "Error",
-      text: error.message,
-      icon: "error",
-    })
-  }
+      cart.clearCart()
+      setShowCart(false)
+    } catch (error) {
+      const Swal = (await import("sweetalert2")).default
+      Swal.fire({
+        title: "Error",
+        text: error.message,
+        icon: "error",
+      })
+    }
   }
 
   const handleEditItem = (item, index) => {
@@ -228,6 +250,11 @@ function MainApp() {
         <label style={{ display: "block", color: "#fff", fontSize: 14, marginBottom: 4 }}>
           Escáner
         </label>
+        {isTouchDevice && (
+          <p style={{ color: "#cbd5e1", fontSize: 12, margin: "4px 0 10px" }}>
+            En iPhone o pantallas táctiles escribe el código y pulsa Agregar.
+          </p>
+        )}
         <input
           ref={focusTrapRef}
           type="text"
@@ -235,10 +262,28 @@ function MainApp() {
           autoComplete="off"
           autoCorrect="off"
           spellCheck="false"
-          autoFocus
+          autoFocus={!isTouchDevice}
           inputMode="text"
-          placeholder="Escanea o escribe el código"
-          onBlur={focusScannerTrap}
+          placeholder={isTouchDevice ? "Escribe el código" : "Escanea o escribe el código"}
+          onBlur={isTouchDevice ? undefined : focusScannerTrap}
+          onChange={
+            isTouchDevice
+              ? (e) => {
+                  setManualCode(e.target.value)
+                }
+              : undefined
+          }
+          onKeyDown={
+            isTouchDevice
+              ? (e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    submitManualCode()
+                  }
+                }
+              : handleScannerKey
+          }
+          value={isTouchDevice ? manualCode : undefined}
           style={{
             width: "100%",
             padding: "12px 14px",
@@ -252,6 +297,25 @@ function MainApp() {
             boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
           }}
         />
+        {isTouchDevice && (
+          <button
+            type="button"
+            onClick={submitManualCode}
+            style={{
+              marginTop: 8,
+              padding: "10px 14px",
+              borderRadius: 10,
+              border: "1px solid #6ac5ff",
+              background: "#1e293b",
+              color: "#e2e8f0",
+              fontWeight: 700,
+              cursor: "pointer",
+              width: "100%",
+            }}
+          >
+            Agregar código
+          </button>
+        )}
       </div>
 
       <header className="top-bar">
