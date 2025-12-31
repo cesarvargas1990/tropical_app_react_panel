@@ -220,15 +220,44 @@ function MainApp() {
     const handleWindowFocus = () => focusScannerTrap()
     const handlePageShow = () => focusScannerTrap()
     const handleLoad = () => focusScannerTrap()
+    const handleVisibility = () => {
+      if (!document.hidden) focusScannerTrap()
+    }
     window.addEventListener("focus", handleWindowFocus)
     window.addEventListener("pageshow", handlePageShow)
     window.addEventListener("load", handleLoad)
+    document.addEventListener("visibilitychange", handleVisibility)
     return () => {
       cancelAnimationFrame(rafId)
       timeouts.forEach(clearTimeout)
       window.removeEventListener("focus", handleWindowFocus)
       window.removeEventListener("pageshow", handlePageShow)
       window.removeEventListener("load", handleLoad)
+      document.removeEventListener("visibilitychange", handleVisibility)
+    }
+  }, [focusScannerTrap, showManualInput])
+
+  useEffect(() => {
+    if (showManualInput) return
+    let attempts = 0
+    const tryFocus = () => {
+      focusScannerTrap()
+      attempts += 1
+      const el = focusTrapRef.current
+      if (el && document.activeElement === el) return true
+      return false
+    }
+
+    const immediate = setTimeout(tryFocus, 10)
+    const interval = setInterval(() => {
+      if (tryFocus() || attempts > 40) {
+        clearInterval(interval)
+      }
+    }, 150)
+
+    return () => {
+      clearTimeout(immediate)
+      clearInterval(interval)
     }
   }, [focusScannerTrap, showManualInput])
 
