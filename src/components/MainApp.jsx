@@ -80,7 +80,7 @@ function MainApp() {
   const resetScannerBuffer = useCallback(() => {
     scannerBufferRef.current = ""
   }, [])
-
+ 
   const focusScannerTrap = useCallback(() => {
     try {
       if (document.visibilityState !== "visible") return
