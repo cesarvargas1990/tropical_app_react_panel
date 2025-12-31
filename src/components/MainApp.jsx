@@ -180,6 +180,26 @@ function MainApp() {
   }, [handleScannerKey, focusScannerTrap, requestFullscreenIfNeeded, isTouchDevice])
 
   useEffect(() => {
+    if (!isTouchDevice) return
+    const handlePointer = () => {
+      const el = focusTrapRef.current
+      if (!el) return
+      try {
+        el.focus({ preventScroll: true })
+        el.setSelectionRange?.(el.value.length, el.value.length)
+      } catch (err) {
+        console.warn("No se pudo enfocar el input táctil", err)
+      }
+    }
+    document.addEventListener("pointerdown", handlePointer, true)
+    document.addEventListener("click", handlePointer, true)
+    return () => {
+      document.removeEventListener("pointerdown", handlePointer, true)
+      document.removeEventListener("click", handlePointer, true)
+    }
+  }, [isTouchDevice])
+
+  useEffect(() => {
     if (isTouchDevice) return
     focusScannerTrap()
     const interval = setInterval(() => {
