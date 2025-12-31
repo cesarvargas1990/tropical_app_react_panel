@@ -193,6 +193,8 @@ function MainApp() {
     }
     document.addEventListener("pointerdown", handlePointer, true)
     document.addEventListener("click", handlePointer, true)
+    // Intenta enfocar al abrir
+    setTimeout(handlePointer, 50)
     return () => {
       document.removeEventListener("pointerdown", handlePointer, true)
       document.removeEventListener("click", handlePointer, true)
@@ -282,7 +284,7 @@ function MainApp() {
           autoComplete="off"
           autoCorrect="off"
           spellCheck="false"
-          autoFocus={!isTouchDevice}
+          autoFocus
           inputMode="text"
           placeholder={isTouchDevice ? "Escribe el código" : "Escanea o escribe el código"}
           onBlur={isTouchDevice ? undefined : focusScannerTrap}
