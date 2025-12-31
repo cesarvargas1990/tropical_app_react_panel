@@ -270,6 +270,35 @@ function MainApp() {
   }, [focusScannerTrap])
 
   useEffect(() => {
+    const simulateTap = () => {
+      focusScannerTrap()
+      const target = focusTrapRef.current || document.body
+      if (!target) return
+      try {
+        const ptrDown = new PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerType: "touch" })
+        const ptrUp = new PointerEvent("pointerup", { bubbles: true, cancelable: true, pointerType: "touch" })
+        target.dispatchEvent(ptrDown)
+        target.dispatchEvent(ptrUp)
+      } catch {
+        // PointerEvent may not be supported; fall back to mouse
+      }
+      try {
+        const click = new MouseEvent("click", { bubbles: true, cancelable: true, view: window })
+        target.dispatchEvent(click)
+      } catch {
+        // ignore
+      }
+    }
+
+    const t1 = setTimeout(simulateTap, 30)
+    const t2 = setTimeout(simulateTap, 180)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [focusScannerTrap])
+
+  useEffect(() => {
     if (isTouchDevice) return
     const el = focusTrapRef.current
     if (!el) return
