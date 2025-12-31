@@ -295,7 +295,7 @@ function MainApp() {
     width: 1,
     height: 1,
     opacity: 0,
-    pointerEvents: "none",
+    pointerEvents: "auto",
     top: 0,
     left: 0,
     border: "none",
@@ -311,7 +311,7 @@ function MainApp() {
         <input
           ref={focusTrapRef}
           type="text"
-          tabIndex={-1}
+          tabIndex={0}
           autoComplete="off"
           autoCorrect="off"
           spellCheck="false"
