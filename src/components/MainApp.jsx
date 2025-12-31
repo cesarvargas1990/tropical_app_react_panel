@@ -216,18 +216,19 @@ function MainApp() {
   useEffect(() => {
     if (showManualInput) return
     const rafId = requestAnimationFrame(focusScannerTrap)
-    const t1 = setTimeout(focusScannerTrap, 120)
-    const t2 = setTimeout(focusScannerTrap, 600)
+    const timeouts = [0, 40, 120, 320, 800].map((ms) => setTimeout(focusScannerTrap, ms))
     const handleWindowFocus = () => focusScannerTrap()
     const handlePageShow = () => focusScannerTrap()
+    const handleLoad = () => focusScannerTrap()
     window.addEventListener("focus", handleWindowFocus)
     window.addEventListener("pageshow", handlePageShow)
+    window.addEventListener("load", handleLoad)
     return () => {
       cancelAnimationFrame(rafId)
-      clearTimeout(t1)
-      clearTimeout(t2)
+      timeouts.forEach(clearTimeout)
       window.removeEventListener("focus", handleWindowFocus)
       window.removeEventListener("pageshow", handlePageShow)
+      window.removeEventListener("load", handleLoad)
     }
   }, [focusScannerTrap, showManualInput])
 
