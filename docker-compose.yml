@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+        - VITE_BACKEND_TOKEN=${VITE_BACKEND_TOKEN}
+        - VITE_FILES_URL=${VITE_FILES_URL}
+        - VITE_PUSHER_APP_KEY=${VITE_PUSHER_APP_KEY}
+        - VITE_PUSHER_APP_CLUSTER=${VITE_PUSHER_APP_CLUSTER}
+        - VITE_PUSHER_HOST=${VITE_PUSHER_HOST}
+        - VITE_PUSHER_PORT=${VITE_PUSHER_PORT}
+        - VITE_PUSHER_SCHEME=${VITE_PUSHER_SCHEME}
+        - VITE_EVENT_BASE_URL=${VITE_EVENT_BASE_URL}
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+    restart: unless-stopped

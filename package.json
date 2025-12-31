@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/tropical/ && npm run deploy",
+    "build": "vite build",
+    "build:docker": "vite build",
     "deploy": "rm -rf ../public/tropical && cp -R dist ../public/tropical",
     "preview": "vite preview",
     "test": "vitest",
