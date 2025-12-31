@@ -83,17 +83,18 @@ function MainApp() {
   }, [])
 
   const focusScannerTrap = useCallback(() => {
-    if (isTouchDevice) return
     try {
       if (document.visibilityState !== "visible") return
       const el = focusTrapRef.current
       if (el && document.activeElement !== el) {
         el.focus({ preventScroll: true })
+        const len = el.value?.length ?? 0
+        el.setSelectionRange?.(len, len)
       }
     } catch (err) {
       console.warn("No se pudo enfocar el buffer del escáner", err)
     }
-  }, [isTouchDevice])
+  }, [])
 
   const requestFullscreenIfNeeded = useCallback(() => {
     if (isTouchDevice) return
@@ -202,13 +203,12 @@ function MainApp() {
   }, [isTouchDevice])
 
   useEffect(() => {
-    if (isTouchDevice) return
     focusScannerTrap()
     const interval = setInterval(() => {
       focusScannerTrap()
     }, 600)
     return () => clearInterval(interval)
-  }, [focusScannerTrap, isTouchDevice])
+  }, [focusScannerTrap])
 
   useEffect(() => {
     if (isTouchDevice) return
@@ -287,7 +287,7 @@ function MainApp() {
           autoFocus
           inputMode="text"
           placeholder={isTouchDevice ? "Escribe el código" : "Escanea o escribe el código"}
-          onBlur={isTouchDevice ? undefined : focusScannerTrap}
+          onBlur={focusScannerTrap}
           onChange={
             isTouchDevice
               ? (e) => {
