@@ -31,6 +31,7 @@ function MainApp() {
   const scannerBufferRef = useRef("")
   const focusTrapRef = useRef(null)
   const fullscreenRequestedRef = useRef(false)
+  const [showManualInput, setShowManualInput] = useState(false)
 
   useEffect(() => { loadProducts() }, [])
 
@@ -83,6 +84,7 @@ function MainApp() {
   }, [])
 
   const focusScannerTrap = useCallback(() => {
+    if (showManualInput) return
     try {
       if (document.visibilityState !== "visible") return
       const el = focusTrapRef.current
@@ -94,7 +96,7 @@ function MainApp() {
     } catch (err) {
       console.warn("No se pudo enfocar el buffer del escáner", err)
     }
-  }, [])
+  }, [showManualInput])
 
   const requestFullscreenIfNeeded = useCallback(() => {
     if (isTouchDevice) return
@@ -183,6 +185,7 @@ function MainApp() {
   useEffect(() => {
     if (!isTouchDevice) return
     const handlePointer = () => {
+      if (showManualInput) return
       const el = focusTrapRef.current
       if (!el) return
       try {
@@ -200,7 +203,7 @@ function MainApp() {
       document.removeEventListener("pointerdown", handlePointer, true)
       document.removeEventListener("click", handlePointer, true)
     }
-  }, [isTouchDevice])
+  }, [isTouchDevice, showManualInput])
 
   useEffect(() => {
     focusScannerTrap()
@@ -266,88 +269,55 @@ function MainApp() {
     setShowCart(false)
   }
 
-  const scannerWrapperStyle = isTouchDevice
-    ? { padding: "12px 16px" }
-    : { position: "fixed", width: 1, height: 1, overflow: "hidden", top: 0, left: 0 }
+  const scannerWrapperStyle = { position: "fixed", width: 1, height: 1, overflow: "hidden", top: 0, left: 0 }
 
-  const scannerInputStyle = isTouchDevice
-    ? {
-        width: "100%",
-        padding: "12px 14px",
-        borderRadius: 10,
-        border: "1px solid #6ac5ff",
-        background: "rgba(255,255,255,0.9)",
-        color: "#0b1d2c",
-        fontSize: 16,
-        fontWeight: 600,
-        outline: "none",
-        boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-      }
-    : {
-        position: "absolute",
-        width: 1,
-        height: 1,
-        opacity: 0,
-        pointerEvents: "none",
-        top: 0,
-        left: 0,
-        border: "none",
-        padding: 0,
-        margin: 0,
-        background: "transparent",
-        color: "transparent",
-      }
+  const scannerInputStyle = {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    opacity: 0,
+    pointerEvents: "none",
+    top: 0,
+    left: 0,
+    border: "none",
+    padding: 0,
+    margin: 0,
+    background: "transparent",
+    color: "transparent",
+  }
 
   return (
     <div className="app">
       <div style={scannerWrapperStyle}>
-        {isTouchDevice && (
-          <label style={{ display: "block", color: "#fff", fontSize: 14, marginBottom: 4 }}>
-            Escáner
-          </label>
-        )}
-        {isTouchDevice && (
-          <p style={{ color: "#cbd5e1", fontSize: 12, margin: "4px 0 10px" }}>
-            En iPhone o pantallas táctiles escribe el código y pulsa Agregar.
-          </p>
-        )}
         <input
           ref={focusTrapRef}
           type="text"
-          tabIndex={0}
+          tabIndex={-1}
           autoComplete="off"
           autoCorrect="off"
           spellCheck="false"
           autoFocus
-          inputMode="text"
-          placeholder={isTouchDevice ? "Escribe el código" : ""}
+          inputMode="none"
+          enterKeyHint="none"
+          placeholder=""
+          aria-hidden="true"
           onBlur={focusScannerTrap}
-          onChange={
-            isTouchDevice
-              ? (e) => {
-                  setManualCode(e.target.value)
-                }
-              : undefined
-          }
-          onKeyDown={
-            isTouchDevice
-              ? (e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault()
-                    submitManualCode()
-                  }
-              }
-            : handleScannerKey
-          }
-          value={isTouchDevice ? manualCode : undefined}
+          onKeyDown={handleScannerKey}
           style={scannerInputStyle}
         />
-        {isTouchDevice && (
+      </div>
+      {isTouchDevice && (
+        <div style={{ padding: "12px 16px" }}>
+          <label style={{ display: "block", color: "#fff", fontSize: 14, marginBottom: 4 }}>
+            Escáner
+          </label>
+          <p style={{ color: "#cbd5e1", fontSize: 12, margin: "4px 0 10px" }}>
+            Pulsa escribir solo si quieres ingresar un código manualmente. El lector sigue activo y oculto.
+          </p>
           <button
             type="button"
-            onClick={submitManualCode}
+            onClick={() => setShowManualInput((prev) => !prev)}
             style={{
-              marginTop: 8,
               padding: "10px 14px",
               borderRadius: 10,
               border: "1px solid #6ac5ff",
@@ -358,10 +328,56 @@ function MainApp() {
               width: "100%",
             }}
           >
-            Agregar código
+            {showManualInput ? "Ocultar campo manual" : "Escribir código manual"}
           </button>
-        )}
-      </div>
+          {showManualInput && (
+            <div style={{ marginTop: 10 }}>
+              <input
+                type="text"
+                value={manualCode}
+                onChange={(e) => setManualCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    submitManualCode()
+                  }
+                }}
+                placeholder="Escribe el código"
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  borderRadius: 10,
+                  border: "1px solid #6ac5ff",
+                  background: "rgba(255,255,255,0.9)",
+                  color: "#0b1d2c",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  outline: "none",
+                  boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+                  marginTop: 10,
+                }}
+              />
+              <button
+                type="button"
+                onClick={submitManualCode}
+                style={{
+                  marginTop: 8,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  border: "1px solid #6ac5ff",
+                  background: "#0f172a",
+                  color: "#e2e8f0",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                Agregar código
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <header className="top-bar">
         <div className="top-title">Panel de Ventas Tropical APP</div>
