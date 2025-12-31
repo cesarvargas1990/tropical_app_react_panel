@@ -155,10 +155,12 @@ function MainApp() {
 
     document.addEventListener("pointerdown", handlePointer, true)
     document.addEventListener("visibilitychange", handleVisibility)
+    document.addEventListener("click", handlePointer, true)
 
     return () => {
       window.removeEventListener("keydown", handleWindowKey)
       document.removeEventListener("pointerdown", handlePointer, true)
+      document.removeEventListener("click", handlePointer, true)
       document.removeEventListener("visibilitychange", handleVisibility)
     }
   }, [handleScannerKey, focusScannerTrap, requestFullscreenIfNeeded])
@@ -222,24 +224,35 @@ function MainApp() {
 
   return (
     <div className="app">
-      <input
-        ref={focusTrapRef}
-        type="text"
-        tabIndex={0}
-        aria-hidden="true"
-        autoComplete="off"
-        autoCorrect="off"
-        spellCheck="false"
-        autoFocus
-        inputMode="text"
-        style={{
-          position: "fixed",
-          opacity: 0.01,
-          height: 1,
-          width: 1,
-          zIndex: -1,
-        }}
-      />
+      <div style={{ padding: "12px 16px" }}>
+        <label style={{ display: "block", color: "#fff", fontSize: 14, marginBottom: 4 }}>
+          Escáner
+        </label>
+        <input
+          ref={focusTrapRef}
+          type="text"
+          tabIndex={0}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
+          autoFocus
+          inputMode="text"
+          placeholder="Escanea o escribe el código"
+          onBlur={focusScannerTrap}
+          style={{
+            width: "100%",
+            padding: "12px 14px",
+            borderRadius: 10,
+            border: "1px solid #6ac5ff",
+            background: "rgba(255,255,255,0.9)",
+            color: "#0b1d2c",
+            fontSize: 16,
+            fontWeight: 600,
+            outline: "none",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+          }}
+        />
+      </div>
 
       <header className="top-bar">
         <div className="top-title">Panel de Ventas Tropical APP</div>
