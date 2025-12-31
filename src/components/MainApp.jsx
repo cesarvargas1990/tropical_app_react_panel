@@ -52,26 +52,6 @@ function MainApp() {
     cart.addItemDirect(match, { fromSocket: true })
     return true
   }, [originalProducts, cart.addItemDirect])
-  const triggerSocketEvent = useCallback(
-    async (productId) => {
-      const base = import.meta.env.VITE_EVENT_BASE_URL
-      if (!base) {
-        console.warn("VITE_EVENT_BASE_URL no está configurado; no se envía evento.")
-        return
-      }
-
-      const url = `${base}${encodeURIComponent(productId)}`
-      try {
-        console.info("Enviando evento a:", url, "(cors)")
-        window.__lastEventUrl = url
-        const res = await fetch(url, { method: "GET" })
-        window.__lastEventResponse = res?.status ?? 0
-      } catch (error) {
-        console.warn("No se pudo notificar al socket con el código escaneado", error)
-      }
-    },
-    []
-  )
 
   useProductsRealtime({
     onReload: loadProducts,
@@ -95,10 +75,15 @@ function MainApp() {
       if (!value) return
 
       console.info("Código escaneado capturado:", value)
-      await triggerSocketEvent(value)
-      // La adición se hará al recibir el evento del socket para evitar duplicados.
+      const ok = addProductFromSocket(value)
+      if (!ok) {
+        console.warn("No se pudo agregar el producto escaneado:", value)
+        return
+      }
+
+      setShowCart(true)
     },
-    [triggerSocketEvent]
+    [addProductFromSocket, setShowCart]
   )
 
   const handleScannerKey = useCallback(
