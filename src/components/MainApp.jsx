@@ -214,6 +214,24 @@ function MainApp() {
   }, [focusScannerTrap])
 
   useEffect(() => {
+    if (showManualInput) return
+    const rafId = requestAnimationFrame(focusScannerTrap)
+    const t1 = setTimeout(focusScannerTrap, 120)
+    const t2 = setTimeout(focusScannerTrap, 600)
+    const handleWindowFocus = () => focusScannerTrap()
+    const handlePageShow = () => focusScannerTrap()
+    window.addEventListener("focus", handleWindowFocus)
+    window.addEventListener("pageshow", handlePageShow)
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(t1)
+      clearTimeout(t2)
+      window.removeEventListener("focus", handleWindowFocus)
+      window.removeEventListener("pageshow", handlePageShow)
+    }
+  }, [focusScannerTrap, showManualInput])
+
+  useEffect(() => {
     if (isTouchDevice) return
     const el = focusTrapRef.current
     if (!el) return
