@@ -266,12 +266,46 @@ function MainApp() {
     setShowCart(false)
   }
 
+  const scannerWrapperStyle = isTouchDevice
+    ? { padding: "12px 16px" }
+    : { position: "fixed", width: 1, height: 1, overflow: "hidden", top: 0, left: 0 }
+
+  const scannerInputStyle = isTouchDevice
+    ? {
+        width: "100%",
+        padding: "12px 14px",
+        borderRadius: 10,
+        border: "1px solid #6ac5ff",
+        background: "rgba(255,255,255,0.9)",
+        color: "#0b1d2c",
+        fontSize: 16,
+        fontWeight: 600,
+        outline: "none",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+      }
+    : {
+        position: "absolute",
+        width: 1,
+        height: 1,
+        opacity: 0,
+        pointerEvents: "none",
+        top: 0,
+        left: 0,
+        border: "none",
+        padding: 0,
+        margin: 0,
+        background: "transparent",
+        color: "transparent",
+      }
+
   return (
     <div className="app">
-      <div style={{ padding: "12px 16px" }}>
-        <label style={{ display: "block", color: "#fff", fontSize: 14, marginBottom: 4 }}>
-          Escáner
-        </label>
+      <div style={scannerWrapperStyle}>
+        {isTouchDevice && (
+          <label style={{ display: "block", color: "#fff", fontSize: 14, marginBottom: 4 }}>
+            Escáner
+          </label>
+        )}
         {isTouchDevice && (
           <p style={{ color: "#cbd5e1", fontSize: 12, margin: "4px 0 10px" }}>
             En iPhone o pantallas táctiles escribe el código y pulsa Agregar.
@@ -286,7 +320,7 @@ function MainApp() {
           spellCheck="false"
           autoFocus
           inputMode="text"
-          placeholder={isTouchDevice ? "Escribe el código" : "Escanea o escribe el código"}
+          placeholder={isTouchDevice ? "Escribe el código" : ""}
           onBlur={focusScannerTrap}
           onChange={
             isTouchDevice
@@ -302,22 +336,11 @@ function MainApp() {
                     e.preventDefault()
                     submitManualCode()
                   }
-                }
-              : handleScannerKey
+              }
+            : handleScannerKey
           }
           value={isTouchDevice ? manualCode : undefined}
-          style={{
-            width: "100%",
-            padding: "12px 14px",
-            borderRadius: 10,
-            border: "1px solid #6ac5ff",
-            background: "rgba(255,255,255,0.9)",
-            color: "#0b1d2c",
-            fontSize: 16,
-            fontWeight: 600,
-            outline: "none",
-            boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-          }}
+          style={scannerInputStyle}
         />
         {isTouchDevice && (
           <button
