@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 // Servicios
 import { getProducts } from "../services/productsService"
@@ -207,6 +207,20 @@ function MainApp() {
       focusScannerTrap()
     }, 600)
     return () => clearInterval(interval)
+  }, [focusScannerTrap])
+
+  useLayoutEffect(() => {
+    // Intentar foco lo antes posible, incluso antes del paint inicial
+    focusScannerTrap()
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      focusScannerTrap()
+      return
+    }
+    const handleReady = () => focusScannerTrap()
+    document.addEventListener("DOMContentLoaded", handleReady, { once: true })
+    return () => {
+      document.removeEventListener("DOMContentLoaded", handleReady)
+    }
   }, [focusScannerTrap])
 
   useEffect(() => {
