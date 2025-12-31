@@ -217,16 +217,9 @@ function MainApp() {
       return
     }
     const handleReady = () => focusScannerTrap()
-    const handleState = () => {
-      if (document.readyState === "interactive" || document.readyState === "complete") {
-        focusScannerTrap()
-      }
-    }
     document.addEventListener("DOMContentLoaded", handleReady, { once: true })
-    document.addEventListener("readystatechange", handleState)
     return () => {
       document.removeEventListener("DOMContentLoaded", handleReady)
-      document.removeEventListener("readystatechange", handleState)
     }
   }, [focusScannerTrap])
 
@@ -274,25 +267,6 @@ function MainApp() {
       clearTimeout(immediate)
       clearInterval(interval)
     }
-  }, [focusScannerTrap])
-
-  useEffect(() => {
-    let swings = 0
-    const el = focusTrapRef.current
-    if (!el) return
-    const interval = setInterval(() => {
-      swings += 1
-      try {
-        el.blur()
-      } catch {
-        /* ignore */
-      }
-      focusScannerTrap()
-      if (document.activeElement === el || swings > 60) {
-        clearInterval(interval)
-      }
-    }, 120)
-    return () => clearInterval(interval)
   }, [focusScannerTrap])
 
   useEffect(() => {
@@ -373,27 +347,21 @@ function MainApp() {
     setShowCart(false)
   }
 
-  const scannerWrapperStyle = {
-    position: "fixed",
-    inset: 0,
-    pointerEvents: "none",
-    zIndex: 2147483647,
-  }
+  const scannerWrapperStyle = { position: "fixed", width: 1, height: 1, overflow: "hidden", top: 0, left: 0 }
 
   const scannerInputStyle = {
     position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
+    width: 1,
+    height: 1,
     opacity: 0,
     pointerEvents: "auto",
-    touchAction: "none",
-    background: "transparent",
+    top: 0,
+    left: 0,
     border: "none",
     padding: 0,
     margin: 0,
+    background: "transparent",
     color: "transparent",
-    transform: "translateZ(0)",
   }
 
   return (
