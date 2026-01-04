@@ -32,6 +32,11 @@ ENV VITE_EVENT_BASE_URL=${VITE_EVENT_BASE_URL}
 # Construye assets sin paso de deploy externo
 RUN npm run build:docker
 
+# Copia manifest e íconos PWA al artefacto final desde la raíz del repo
+RUN cp manifest.json dist/ && \
+  cp icon-192.png dist/ && \
+  cp icon-512.png dist/
+
 # Imagen final con nginx sirviendo los estáticos
 FROM nginx:alpine AS runner
 
