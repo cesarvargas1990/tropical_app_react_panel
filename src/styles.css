@@ -87,6 +87,37 @@ body {
 }
 
 /* ---------------------- */
+/* SCANNER PANEL          */
+/* ---------------------- */
+
+.scanner-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #0b1220;
+  border: 1px solid #1f2937;
+}
+
+.scanner-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.scanner-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.scanner-input:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.6);
+  outline-offset: 2px;
+}
+
+/* ---------------------- */
 /* GRID DE PRODUCTOS      */
 /* ---------------------- */
 

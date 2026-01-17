@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 
 // Servicios
 import { getProducts } from "../services/productsService"
@@ -23,6 +23,8 @@ function MainApp() {
 
   const [showCart, setShowCart] = useState(false)
   const [showRecent, setShowRecent] = useState(false)
+  const [scannerValue, setScannerValue] = useState("")
+  const scannerInputRef = useRef(null)
   useEffect(() => { loadProducts() }, [])
 
   const { getSizesFor } = useProductSizes(originalProducts)
@@ -50,6 +52,66 @@ function MainApp() {
     cart.addItemDirect(match, { fromSocket: true })
     return true
   }, [originalProducts, cart.addItemDirect])
+
+  const focusScannerInput = useCallback(() => {
+    const el = scannerInputRef.current
+    if (!el) return
+    try {
+      el.focus({ preventScroll: true })
+      const len = el.value?.length ?? 0
+      el.setSelectionRange?.(len, len)
+    } catch {
+      // ignore focus errors
+    }
+  }, [])
+
+  const handleScannerSubmit = useCallback(
+    (valueRaw) => {
+      const value = String(valueRaw || "").trim()
+      if (!value) return
+      const ok = addProductFromSocket(value)
+      if (ok) setShowCart(true)
+      setScannerValue("")
+    },
+    [addProductFromSocket]
+  )
+
+  const handleScannerKeyDown = useCallback(
+    (event) => {
+      if (event.key !== "Enter") return
+      event.preventDefault()
+      handleScannerSubmit(event.currentTarget.value)
+    },
+    [handleScannerSubmit]
+  )
+
+  const handleScannerChange = useCallback(
+    (event) => {
+      const next = event.target.value
+      if (next.includes("\n") || next.includes("\r")) {
+        handleScannerSubmit(next)
+        return
+      }
+      setScannerValue(next)
+    },
+    [handleScannerSubmit]
+  )
+
+  useEffect(() => {
+    focusScannerInput()
+    const handleVisibility = () => {
+      if (!document.hidden) focusScannerInput()
+    }
+    const handlePointer = () => focusScannerInput()
+    window.addEventListener("focus", focusScannerInput)
+    document.addEventListener("visibilitychange", handleVisibility)
+    document.addEventListener("pointerdown", handlePointer, true)
+    return () => {
+      window.removeEventListener("focus", focusScannerInput)
+      document.removeEventListener("visibilitychange", handleVisibility)
+      document.removeEventListener("pointerdown", handlePointer, true)
+    }
+  }, [focusScannerInput])
 
   useProductsRealtime({
     onReload: loadProducts,
@@ -114,6 +176,22 @@ function MainApp() {
       </header>
 
       <main className="main">
+        <div className="scanner-panel">
+          <span className="scanner-label">Scanner QR</span>
+          <input
+            ref={scannerInputRef}
+            className="input scanner-input"
+            type="text"
+            value={scannerValue}
+            onChange={handleScannerChange}
+            onKeyDown={handleScannerKeyDown}
+            onBlur={focusScannerInput}
+            placeholder="Escanea aqui..."
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
+          />
+        </div>
         <div className="product-panel">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} onSelect={cart.selectProduct} />
