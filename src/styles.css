@@ -98,18 +98,34 @@ body {
   padding: 10px 12px;
   border-radius: 12px;
   background: #0b1220;
-  border: 1px solid #1f2937;
+  border: 2px solid #991b1b;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.scanner-panel:focus-within {
-  border-color: rgba(59, 130, 246, 0.8);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+.scanner-panel-focused {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+}
+
+.scanner-panel-blur {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
 }
 
 .scanner-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+.scanner-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #e2e8f0;
 }
 
 .scanner-input {

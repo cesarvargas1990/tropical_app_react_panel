@@ -24,6 +24,7 @@ function MainApp() {
   const [showCart, setShowCart] = useState(false)
   const [showRecent, setShowRecent] = useState(false)
   const [scannerValue, setScannerValue] = useState("")
+  const [scannerFocused, setScannerFocused] = useState(false)
   const scannerInputRef = useRef(null)
   useEffect(() => { loadProducts() }, [])
 
@@ -60,6 +61,7 @@ function MainApp() {
       el.focus({ preventScroll: true })
       const len = el.value?.length ?? 0
       el.setSelectionRange?.(len, len)
+      setScannerFocused(true)
     } catch {
       // ignore focus errors
     }
@@ -99,10 +101,15 @@ function MainApp() {
   )
 
   const handleScannerBlur = useCallback(() => {
+    setScannerFocused(false)
     window.setTimeout(() => {
       focusScannerInput()
     }, 0)
   }, [focusScannerInput])
+
+  const handleScannerFocus = useCallback(() => {
+    setScannerFocused(true)
+  }, [])
 
   useEffect(() => {
     focusScannerInput()
@@ -180,8 +187,34 @@ function MainApp() {
       </header>
 
       <main className="main">
-        <div className="scanner-panel" onClick={focusScannerInput} onTouchStart={focusScannerInput}>
-          <span className="scanner-label">Scanner QR</span>
+        <div
+          className={`scanner-panel ${scannerFocused ? "scanner-panel-focused" : "scanner-panel-blur"}`}
+          onClick={focusScannerInput}
+          onTouchStart={focusScannerInput}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              focusScannerInput()
+            }
+          }}
+          aria-pressed={scannerFocused}
+        >
+          <span className="scanner-label">
+            <span className="scanner-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 7V5a1 1 0 0 1 1-1h2" />
+                <path d="M4 17v2a1 1 0 0 0 1 1h2" />
+                <path d="M20 7V5a1 1 0 0 0-1-1h-2" />
+                <path d="M20 17v2a1 1 0 0 1-1 1h-2" />
+                <path d="M8 6v12" />
+                <path d="M12 6v12" />
+                <path d="M16 6v12" />
+              </svg>
+            </span>
+            Scanner QR
+          </span>
           <input
             ref={scannerInputRef}
             className="input scanner-input"
@@ -190,12 +223,13 @@ function MainApp() {
             onChange={handleScannerChange}
             onKeyDown={handleScannerKeyDown}
             onBlur={handleScannerBlur}
+            onFocus={handleScannerFocus}
             placeholder="Escanea aqui..."
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck="false"
-            inputMode="numeric"
+            inputMode="none"
             pattern="[0-9]*"
             enterKeyHint="done"
             name="scanner"
