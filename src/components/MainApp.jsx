@@ -224,7 +224,6 @@ function MainApp() {
             onKeyDown={handleScannerKeyDown}
             onBlur={handleScannerBlur}
             onFocus={handleScannerFocus}
-            placeholder="Escanea aqui..."
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
