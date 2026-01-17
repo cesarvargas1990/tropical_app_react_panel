@@ -212,6 +212,11 @@ export function SizeModal({
       activeField.index === field.index
         ? 'input-active'
         : ''}`}
+      data-testid={
+        field.type === 'global'
+          ? `toppings-global-${field.sizeId}`
+          : `toppings-row-${field.sizeId}-${field.index}`
+      }
       role="button"
       tabIndex={0}
       onClick={() => openKeypad(field)}

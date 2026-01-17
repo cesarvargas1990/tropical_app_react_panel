@@ -1,6 +1,6 @@
-import React from "react"
+import React, { useState } from "react"
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { fireEvent, render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 
 import { SizeModal } from "./SizeModal"
 
@@ -20,6 +20,34 @@ const renderModal = (overrideProps = {}) => {
 
   const utils = render(<SizeModal {...props} />)
   return { ...utils, props }
+}
+
+const renderModalWithState = (initialState, overrideProps = {}) => {
+  const onUpdateSize = vi.fn()
+  const props = {
+    product: baseProduct,
+    sizes: [baseSize],
+    onConfirm: vi.fn(),
+    onCancel: vi.fn(),
+    ...overrideProps,
+  }
+
+  const Wrapper = () => {
+    const [state, setState] = useState(initialState)
+    return (
+      <SizeModal
+        {...props}
+        sizeState={state}
+        onUpdateSize={(sizeId, next) => {
+          onUpdateSize(sizeId, next)
+          setState((prev) => ({ ...prev, [sizeId]: next }))
+        }}
+      />
+    )
+  }
+
+  render(<Wrapper />)
+  return { onUpdateSize }
 }
 
 describe("SizeModal", () => {
@@ -83,12 +111,17 @@ describe("SizeModal", () => {
     }
     const onUpdateSize = vi.fn()
 
-    renderModal({ sizeState: initialState, onUpdateSize })
+    const { onUpdateSize: updateSpy } = renderModalWithState(initialState, { onUpdateSize })
 
-    const input = screen.getByPlaceholderText("Ej: 500")
-    fireEvent.change(input, { target: { value: "300a" } })
+    const display = screen.getByTestId(`toppings-global-${baseSize.id}`)
+    fireEvent.click(display)
+    const keypad = screen.getByText(/Ingrese valor topping/i).closest(".keypad-modal")
+    const keypadScope = within(keypad)
+    fireEvent.click(keypadScope.getByRole("button", { name: "3" }))
+    fireEvent.click(keypadScope.getByRole("button", { name: "0" }))
+    fireEvent.click(keypadScope.getByRole("button", { name: "0" }))
 
-    expect(onUpdateSize).toHaveBeenCalledWith(baseSize.id, expect.objectContaining({
+    expect(updateSpy).toHaveBeenLastCalledWith(baseSize.id, expect.objectContaining({
       toppings: 300,
       items: [
         expect.objectContaining({ toppings: 300 }),
@@ -99,7 +132,7 @@ describe("SizeModal", () => {
     const checkbox = screen.getByLabelText(/¿Domicilio\?/i)
     fireEvent.click(checkbox)
 
-    expect(onUpdateSize).toHaveBeenCalledWith(baseSize.id, expect.objectContaining({
+    expect(updateSpy).toHaveBeenCalledWith(baseSize.id, expect.objectContaining({
       delivery: true,
       items: [
         expect.objectContaining({ delivery: true }),
@@ -119,19 +152,25 @@ describe("SizeModal", () => {
     }
     const onUpdateSize = vi.fn()
 
-    renderModal({ sizeState: stateWithRows, onUpdateSize })
+    const { onUpdateSize: updateSpy } = renderModalWithState(stateWithRows, { onUpdateSize })
 
-    const rowInput = screen.getByDisplayValue("100")
-    fireEvent.change(rowInput, { target: { value: "450" } })
+    const rowDisplay = screen.getByTestId(`toppings-row-${baseSize.id}-0`)
+    fireEvent.click(rowDisplay)
+    const rowKeypad = screen.getByText(/Ingrese valor topping/i).closest(".keypad-modal")
+    const rowKeypadScope = within(rowKeypad)
+    fireEvent.click(rowKeypadScope.getByRole("button", { name: /Limpiar/i }))
+    fireEvent.click(rowKeypadScope.getByRole("button", { name: "4" }))
+    fireEvent.click(rowKeypadScope.getByRole("button", { name: "5" }))
+    fireEvent.click(rowKeypadScope.getByRole("button", { name: "0" }))
 
-    expect(onUpdateSize).toHaveBeenCalledWith(baseSize.id, expect.objectContaining({
+    expect(updateSpy).toHaveBeenLastCalledWith(baseSize.id, expect.objectContaining({
       items: [expect.objectContaining({ toppings: 450 })],
     }))
 
     const rowDelivery = screen.getAllByRole("checkbox")[1]
     fireEvent.click(rowDelivery)
 
-    expect(onUpdateSize).toHaveBeenCalledWith(baseSize.id, expect.objectContaining({
+    expect(updateSpy).toHaveBeenCalledWith(baseSize.id, expect.objectContaining({
       delivery: true,
       items: [expect.objectContaining({ delivery: true })],
     }))
