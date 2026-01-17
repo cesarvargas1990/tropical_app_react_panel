@@ -23,9 +23,16 @@ function MainApp() {
 
   const [showCart, setShowCart] = useState(false)
   const [showRecent, setShowRecent] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [scannerValue, setScannerValue] = useState("")
   const scannerInputRef = useRef(null)
   useEffect(() => { loadProducts() }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const hasTouch = "ontouchstart" in window || (navigator?.maxTouchPoints ?? 0) > 0
+    setIsTouchDevice(hasTouch)
+  }, [])
 
   const { getSizesFor } = useProductSizes(originalProducts)
 
@@ -190,6 +197,8 @@ function MainApp() {
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
+            inputMode={isTouchDevice ? "none" : undefined}
+            readOnly={isTouchDevice}
           />
         </div>
         <div className="product-panel">
