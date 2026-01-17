@@ -23,16 +23,9 @@ function MainApp() {
 
   const [showCart, setShowCart] = useState(false)
   const [showRecent, setShowRecent] = useState(false)
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [scannerValue, setScannerValue] = useState("")
   const scannerInputRef = useRef(null)
   useEffect(() => { loadProducts() }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const hasTouch = "ontouchstart" in window || (navigator?.maxTouchPoints ?? 0) > 0
-    setIsTouchDevice(hasTouch)
-  }, [])
 
   const { getSizesFor } = useProductSizes(originalProducts)
 
@@ -104,6 +97,12 @@ function MainApp() {
     },
     [handleScannerSubmit]
   )
+
+  const handleScannerBlur = useCallback(() => {
+    window.setTimeout(() => {
+      focusScannerInput()
+    }, 0)
+  }, [focusScannerInput])
 
   useEffect(() => {
     focusScannerInput()
@@ -186,17 +185,19 @@ function MainApp() {
           <input
             ref={scannerInputRef}
             className="input scanner-input"
-            type="text"
+            type="tel"
             value={scannerValue}
             onChange={handleScannerChange}
             onKeyDown={handleScannerKeyDown}
-            onBlur={focusScannerInput}
+            onBlur={handleScannerBlur}
             placeholder="Escanea aqui..."
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck="false"
-            inputMode={isTouchDevice ? "none" : undefined}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            enterKeyHint="done"
             name="scanner"
           />
         </div>
