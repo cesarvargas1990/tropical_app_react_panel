@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 
 export function SizeModal({
   product,
@@ -27,6 +27,8 @@ export function SizeModal({
     }, 0)
   }
 
+  const [activeField, setActiveField] = useState(null)
+  const [showKeypad, setShowKeypad] = useState(false)
 
   const visibleSizes = activeSizeId
     ? sizes.filter((s) => s.id === activeSizeId)
@@ -147,6 +149,89 @@ export function SizeModal({
     })
   }
 
+  const getFieldValue = useCallback(
+    (field) => {
+      if (!field) return '0'
+      const current = sizeState[field.sizeId] || {
+        quantity: 0,
+        toppings: 0,
+        delivery: false,
+        items: [],
+      }
+      if (field.type === 'global') return String(current.toppings || 0)
+      const row = (current.items || [])[field.index]
+      return String(row?.toppings || 0)
+    },
+    [sizeState]
+  )
+
+  const applyValueToField = useCallback(
+    (field, valueStr) => {
+      if (!field) return
+      if (field.type === 'global') {
+        handleGlobalToppingsChange(field.sizeId, valueStr)
+        return
+      }
+      handleRowPatch(field.sizeId, field.index, { toppings: valueStr })
+    },
+    [handleGlobalToppingsChange, handleRowPatch]
+  )
+
+  const handleKeypadPress = useCallback(
+    (key) => {
+      if (!activeField) return
+      const current = getFieldValue(activeField)
+      let next = current
+      if (key === 'backspace') {
+        next = current.length > 1 ? current.slice(0, -1) : '0'
+      } else if (key === 'clear') {
+        next = '0'
+      } else {
+        const base = current === '0' ? '' : current
+        next = `${base}${key}`
+      }
+      applyValueToField(activeField, next)
+    },
+    [activeField, applyValueToField, getFieldValue]
+  )
+
+  const openKeypad = (field) => {
+    setActiveField(field)
+    setShowKeypad(true)
+  }
+
+  const closeKeypad = () => {
+    setShowKeypad(false)
+  }
+
+  const renderToppingsDisplay = (field, value) => (
+    <div
+      className={`input ${activeField &&
+      activeField.type === field.type &&
+      activeField.sizeId === field.sizeId &&
+      activeField.index === field.index
+        ? 'input-active'
+        : ''}`}
+      role="button"
+      tabIndex={0}
+      onClick={() => openKeypad(field)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          openKeypad(field)
+        }
+      }}
+      aria-pressed={
+        activeField &&
+        activeField.type === field.type &&
+        activeField.sizeId === field.sizeId &&
+        activeField.index === field.index
+      }
+    >
+      {value}
+    </div>
+  )
+
   return (
     <div className="modal-backdrop">
       <div className="modal">
@@ -188,13 +273,10 @@ export function SizeModal({
                 </div>
 
                 <div className="size-row">
-                  <input
-                    type="text"
-                    placeholder="Ej: 500"
-                    className="input"
-                    value={st.toppings}
-                    onChange={(e) => handleGlobalToppingsChange(size.id, e.target.value)}
-                  />
+                  {renderToppingsDisplay(
+                    { type: 'global', sizeId: size.id },
+                    String(st.toppings || 0)
+                  )}
                 </div>
 
                 <div className="size-row checkbox-row">
@@ -227,14 +309,10 @@ export function SizeModal({
                       </div>
 
                       <div className="size-row">
-                        <input
-                          type="text"
-                          className="input"
-                          value={row.toppings}
-                          onChange={(e) =>
-                            handleRowPatch(size.id, index, { toppings: e.target.value })
-                          }
-                        />
+                        {renderToppingsDisplay(
+                          { type: 'row', sizeId: size.id, index },
+                          String(row.toppings || 0)
+                        )}
 
                         <span style={{ marginLeft: "16px" }}>
                           Domicilio:{" "}
@@ -263,6 +341,85 @@ export function SizeModal({
             )
           })}
         </div>
+
+        {showKeypad && (
+          <div className="modal-backdrop keypad-backdrop" onClick={closeKeypad}>
+            <div className="modal keypad-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="keypad-header">
+              <div className="keypad-title">Ingrese valor topping</div>
+              </div>
+              <div className="keypad-display">
+                {activeField ? getFieldValue(activeField) : '0'}
+              </div>
+              <div className="keypad-grid">
+                <div className="keypad-row">
+                  {['1', '2', '3'].map((digit) => (
+                    <button
+                      key={digit}
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => handleKeypadPress(digit)}
+                    >
+                      {digit}
+                    </button>
+                  ))}
+                </div>
+                <div className="keypad-row">
+                  {['4', '5', '6'].map((digit) => (
+                    <button
+                      key={digit}
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => handleKeypadPress(digit)}
+                    >
+                      {digit}
+                    </button>
+                  ))}
+                </div>
+                <div className="keypad-row">
+                  {['7', '8', '9'].map((digit) => (
+                    <button
+                      key={digit}
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => handleKeypadPress(digit)}
+                    >
+                      {digit}
+                    </button>
+                  ))}
+                </div>
+                <div className="keypad-row keypad-row-center">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleKeypadPress('clear')}
+                  >
+                    Limpiar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => handleKeypadPress('0')}
+                  >
+                    0
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleKeypadPress('backspace')}
+                  >
+                    <span aria-hidden="true">⌫</span> Borrar
+                  </button>
+                </div>
+              </div>
+              <div className="keypad-actions">
+                <button type="button" className="btn-secondary" onClick={closeKeypad}>
+                  Aceptar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="total-section">
           <div className="total-label">Total</div>

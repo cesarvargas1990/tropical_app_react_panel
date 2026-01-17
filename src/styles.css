@@ -798,6 +798,81 @@ body {
   cursor: pointer;
 }
 
+/* ---------------------- */
+/* KEYPAD MODAL           */
+/* ---------------------- */
+
+.keypad-backdrop {
+  padding: 12px;
+}
+
+.keypad-modal {
+  width: 420px;
+  max-width: 92vw;
+  height: auto;
+  max-height: 80vh;
+  padding: 18px 18px 16px;
+}
+
+.keypad-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.keypad-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.keypad-display {
+  margin: 0 auto 14px;
+  width: 100%;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #4b5563;
+  background: #020617;
+  font-size: 18px;
+  text-align: center;
+}
+
+.keypad-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.keypad-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.keypad-row .btn-primary,
+.keypad-row .btn-secondary {
+  flex: 1;
+  min-width: 72px;
+}
+
+.keypad-modal .btn-primary {
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.35);
+}
+
+.keypad-row-center .btn-primary {
+  flex: 0 0 120px;
+}
+
+.keypad-row-center .btn-secondary {
+  flex: 0 0 120px;
+}
+
+.keypad-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
 /* ================================
    ITEM DEL CARRITO
    ================================ */
