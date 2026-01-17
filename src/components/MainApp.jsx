@@ -79,6 +79,7 @@ function MainApp() {
       const ok = addProductFromSocket(value)
       if (ok) setShowCart(true)
       setScannerValue("")
+      focusScannerInput()
     },
     [addProductFromSocket]
   )
@@ -109,14 +110,11 @@ function MainApp() {
     const handleVisibility = () => {
       if (!document.hidden) focusScannerInput()
     }
-    const handlePointer = () => focusScannerInput()
     window.addEventListener("focus", focusScannerInput)
     document.addEventListener("visibilitychange", handleVisibility)
-    document.addEventListener("pointerdown", handlePointer, true)
     return () => {
       window.removeEventListener("focus", focusScannerInput)
       document.removeEventListener("visibilitychange", handleVisibility)
-      document.removeEventListener("pointerdown", handlePointer, true)
     }
   }, [focusScannerInput])
 
@@ -183,7 +181,7 @@ function MainApp() {
       </header>
 
       <main className="main">
-        <div className="scanner-panel">
+        <div className="scanner-panel" onClick={focusScannerInput} onTouchStart={focusScannerInput}>
           <span className="scanner-label">Scanner QR</span>
           <input
             ref={scannerInputRef}
@@ -196,9 +194,10 @@ function MainApp() {
             placeholder="Escanea aqui..."
             autoComplete="off"
             autoCorrect="off"
+            autoCapitalize="off"
             spellCheck="false"
             inputMode={isTouchDevice ? "none" : undefined}
-            readOnly={isTouchDevice}
+            name="scanner"
           />
         </div>
         <div className="product-panel">
