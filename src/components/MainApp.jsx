@@ -167,6 +167,53 @@ function MainApp() {
         <div className="top-title">Panel de Ventas Tropical APP</div>
 
         <div className="top-icons">
+          <div
+            className={`scanner-panel scanner-panel-top ${scannerFocused ? "scanner-panel-focused" : "scanner-panel-blur"}`}
+            onClick={focusScannerInput}
+            onTouchStart={focusScannerInput}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault()
+                focusScannerInput()
+              }
+            }}
+            aria-pressed={scannerFocused}
+          >
+            <span className="scanner-label">
+              <span className="scanner-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 7V5a1 1 0 0 1 1-1h2" />
+                  <path d="M4 17v2a1 1 0 0 0 1 1h2" />
+                  <path d="M20 7V5a1 1 0 0 0-1-1h-2" />
+                  <path d="M20 17v2a1 1 0 0 1-1 1h-2" />
+                  <path d="M8 6v12" />
+                  <path d="M12 6v12" />
+                  <path d="M16 6v12" />
+                </svg>
+              </span>
+            </span>
+            <input
+              ref={scannerInputRef}
+              className="input scanner-input"
+              type="tel"
+              value={scannerValue}
+              onChange={handleScannerChange}
+              onKeyDown={handleScannerKeyDown}
+              onBlur={handleScannerBlur}
+              onFocus={handleScannerFocus}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              inputMode="none"
+              pattern="[0-9]*"
+              enterKeyHint="done"
+              name="scanner"
+            />
+          </div>
+
           <button className="icon-button" onClick={() => setShowRecent(true)}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -187,53 +234,6 @@ function MainApp() {
       </header>
 
       <main className="main">
-        <div
-          className={`scanner-panel ${scannerFocused ? "scanner-panel-focused" : "scanner-panel-blur"}`}
-          onClick={focusScannerInput}
-          onTouchStart={focusScannerInput}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault()
-              focusScannerInput()
-            }
-          }}
-          aria-pressed={scannerFocused}
-        >
-          <span className="scanner-label">
-            <span className="scanner-icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 7V5a1 1 0 0 1 1-1h2" />
-                <path d="M4 17v2a1 1 0 0 0 1 1h2" />
-                <path d="M20 7V5a1 1 0 0 0-1-1h-2" />
-                <path d="M20 17v2a1 1 0 0 1-1 1h-2" />
-                <path d="M8 6v12" />
-                <path d="M12 6v12" />
-                <path d="M16 6v12" />
-              </svg>
-            </span>
-            Scanner QR
-          </span>
-          <input
-            ref={scannerInputRef}
-            className="input scanner-input"
-            type="tel"
-            value={scannerValue}
-            onChange={handleScannerChange}
-            onKeyDown={handleScannerKeyDown}
-            onBlur={handleScannerBlur}
-            onFocus={handleScannerFocus}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck="false"
-            inputMode="none"
-            pattern="[0-9]*"
-            enterKeyHint="done"
-            name="scanner"
-          />
-        </div>
         <div className="product-panel">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} onSelect={cart.selectProduct} />
