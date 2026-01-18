@@ -26,7 +26,7 @@ function MainApp() {
   const [scannerValue, setScannerValue] = useState("")
   const [scannerFocused, setScannerFocused] = useState(false)
   const scannerInputRef = useRef(null)
-  useEffect(() => { loadProducts() }, [])
+  useEffect(() => { loadProducts() }, [loadProducts])
 
   const { getSizesFor } = useProductSizes(originalProducts)
 
@@ -67,6 +67,12 @@ function MainApp() {
     }
   }, [])
 
+  const forceScannerFocus = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      focusScannerInput()
+    })
+  }, [focusScannerInput])
+
   const handleScannerSubmit = useCallback(
     (valueRaw) => {
       const value = String(valueRaw || "").trim()
@@ -76,7 +82,7 @@ function MainApp() {
       setScannerValue("")
       focusScannerInput()
     },
-    [addProductFromSocket]
+    [addProductFromSocket, focusScannerInput]
   )
 
   const handleScannerKeyDown = useCallback(
@@ -103,26 +109,30 @@ function MainApp() {
   const handleScannerBlur = useCallback(() => {
     setScannerFocused(false)
     window.setTimeout(() => {
-      focusScannerInput()
+      forceScannerFocus()
     }, 0)
-  }, [focusScannerInput])
+  }, [forceScannerFocus])
 
   const handleScannerFocus = useCallback(() => {
     setScannerFocused(true)
   }, [])
 
   useEffect(() => {
-    focusScannerInput()
+    forceScannerFocus()
     const handleVisibility = () => {
-      if (!document.hidden) focusScannerInput()
+      if (!document.hidden) forceScannerFocus()
     }
-    window.addEventListener("focus", focusScannerInput)
+    window.addEventListener("focus", forceScannerFocus)
     document.addEventListener("visibilitychange", handleVisibility)
     return () => {
-      window.removeEventListener("focus", focusScannerInput)
+      window.removeEventListener("focus", forceScannerFocus)
       document.removeEventListener("visibilitychange", handleVisibility)
     }
-  }, [focusScannerInput])
+  }, [forceScannerFocus])
+
+  useEffect(() => {
+    forceScannerFocus()
+  }, [scannerValue, showCart, showRecent, cart.selectedProduct, forceScannerFocus])
 
   useProductsRealtime({
     onReload: loadProducts,
