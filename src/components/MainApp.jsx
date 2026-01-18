@@ -25,6 +25,7 @@ function MainApp() {
   const [showRecent, setShowRecent] = useState(false)
   const [scannerValue, setScannerValue] = useState("")
   const [scannerFocused, setScannerFocused] = useState(false)
+  const [appActive, setAppActive] = useState(true)
   const scannerInputRef = useRef(null)
   useEffect(() => { loadProducts() }, [loadProducts])
 
@@ -120,12 +121,28 @@ function MainApp() {
   useEffect(() => {
     forceScannerFocus()
     const handleVisibility = () => {
-      if (!document.hidden) forceScannerFocus()
+      const active = !document.hidden
+      setAppActive(active)
+      if (active) {
+        forceScannerFocus()
+      } else {
+        setScannerFocused(false)
+      }
     }
-    window.addEventListener("focus", forceScannerFocus)
+    const handleWindowBlur = () => {
+      setAppActive(false)
+      setScannerFocused(false)
+    }
+    const handleWindowFocus = () => {
+      setAppActive(true)
+      forceScannerFocus()
+    }
+    window.addEventListener("blur", handleWindowBlur)
+    window.addEventListener("focus", handleWindowFocus)
     document.addEventListener("visibilitychange", handleVisibility)
     return () => {
-      window.removeEventListener("focus", forceScannerFocus)
+      window.removeEventListener("blur", handleWindowBlur)
+      window.removeEventListener("focus", handleWindowFocus)
       document.removeEventListener("visibilitychange", handleVisibility)
     }
   }, [forceScannerFocus])
@@ -178,7 +195,7 @@ function MainApp() {
 
         <div className="top-icons">
           <div
-            className={`scanner-panel scanner-panel-top ${scannerFocused ? "scanner-panel-focused" : "scanner-panel-blur"}`}
+            className={`scanner-panel scanner-panel-top ${appActive && scannerFocused ? "scanner-panel-focused" : "scanner-panel-blur"}`}
             onClick={focusScannerInput}
             onTouchStart={focusScannerInput}
             role="button"
