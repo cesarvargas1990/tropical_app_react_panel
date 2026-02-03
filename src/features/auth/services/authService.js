@@ -14,7 +14,7 @@ export async function apiLogin(email, password) {
     }
 
     return res.data.token
-  } catch (err) {
+  } catch {
     throw new Error("Credenciales incorrectas")
   }
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 
 
-const FILES_URL = import.meta.env.VITE_FILES_URL || process.env.REACT_APP_FILES_URL;
+const FILES_URL = import.meta.env.VITE_FILES_URL
 
 export function ProductCard({ product, onSelect }) {
   return (

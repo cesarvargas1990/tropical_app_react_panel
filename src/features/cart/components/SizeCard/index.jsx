@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { SizeCardTitle } from './SizeCardTitle'
 import { QuantityControls } from './QuantityControls'
 import { ToppingsSection } from './ToppingsSection'
