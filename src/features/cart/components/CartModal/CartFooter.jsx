@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { formatMoney } from './utils'
 
 export const CartFooter = ({ 
@@ -32,3 +33,11 @@ export const CartFooter = ({
     </div>
   </div>
 )
+
+CartFooter.propTypes = {
+  total: PropTypes.number.isRequired,
+  isCartEmpty: PropTypes.bool.isRequired,
+  isRegistering: PropTypes.bool.isRequired,
+  onClear: PropTypes.func.isRequired,
+  onRegister: PropTypes.func.isRequired,
+}

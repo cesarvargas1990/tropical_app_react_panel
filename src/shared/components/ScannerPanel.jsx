@@ -1,4 +1,5 @@
 import React from "react"
+import PropTypes from "prop-types"
 
 /**
  * Componente del panel de scanner en el header
@@ -15,7 +16,7 @@ export function ScannerPanel({
   onFocus,
 }) {
   return (
-    <div
+    <button
       className={`scanner-panel scanner-panel-top ${
         appActive && scannerFocused
           ? "scanner-panel-focused"
@@ -23,15 +24,8 @@ export function ScannerPanel({
       }`}
       onClick={onFocusClick}
       onTouchStart={onFocusClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault()
-          onFocusClick()
-        }
-      }}
       aria-pressed={scannerFocused}
+      type="button"
     >
       <span className="scanner-label">
         <span className="scanner-icon" aria-hidden="true">
@@ -71,6 +65,18 @@ export function ScannerPanel({
         enterKeyHint="done"
         name="scanner"
       />
-    </div>
+    </button>
   )
+}
+
+ScannerPanel.propTypes = {
+  appActive: PropTypes.bool.isRequired,
+  scannerFocused: PropTypes.bool.isRequired,
+  scannerValue: PropTypes.string.isRequired,
+  scannerInputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
+  onFocusClick: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onKeyDown: PropTypes.func.isRequired,
+  onBlur: PropTypes.func.isRequired,
+  onFocus: PropTypes.func.isRequired,
 }

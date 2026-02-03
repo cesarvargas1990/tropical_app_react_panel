@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import PropTypes from 'prop-types'
 import { useSizeCalculations } from '../../hooks/useSizeCalculations'
 import { useKeypad } from '../../hooks/useKeypad'
 import { useSizeUpdates } from '../../hooks/useSizeUpdates'
@@ -94,4 +95,17 @@ export function SizeModal({
       </div>
     </div>
   )
+}
+
+SizeModal.propTypes = {
+  product: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    caracteristica: PropTypes.string,
+  }).isRequired,
+  sizes: PropTypes.array.isRequired,
+  sizeState: PropTypes.object.isRequired,
+  onUpdateSize: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  activeSizeId: PropTypes.number,
 }

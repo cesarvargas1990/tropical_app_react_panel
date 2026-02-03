@@ -23,7 +23,7 @@ export function useScannerInput({ onSubmit }) {
   }, [])
 
   const forceScannerFocus = useCallback(() => {
-    window.requestAnimationFrame(() => {
+    globalThis.requestAnimationFrame(() => {
       focusScannerInput()
     })
   }, [focusScannerInput])
@@ -62,7 +62,7 @@ export function useScannerInput({ onSubmit }) {
 
   const handleScannerBlur = useCallback(() => {
     setScannerFocused(false)
-    window.setTimeout(() => {
+    globalThis.setTimeout(() => {
       forceScannerFocus()
     }, 0)
   }, [forceScannerFocus])

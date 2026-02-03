@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import PropTypes from 'prop-types'
 import { CartHeader } from './CartHeader'
 import { CartItemsList } from './CartItemsList'
 import { CartFooter } from './CartFooter'
@@ -50,12 +51,21 @@ export function CartModal({
   return (
     <div
       className="modal-backdrop cart-backdrop"
+      role="button"
       onClick={handleClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          e.preventDefault()
+          handleClose()
+        }
+      }}
+      tabIndex={isRegistering ? -1 : 0}
       style={{ cursor: isRegistering ? 'not-allowed' : 'default' }}
     >
       <div
         className="cart-modal"
         onClick={(e) => e.stopPropagation()}
+        role="presentation"
         style={{
           position: 'relative',
           opacity: isRegistering ? 0.9 : 1,
@@ -81,4 +91,12 @@ export function CartModal({
       </div>
     </div>
   )
+}
+
+CartModal.propTypes = {
+  items: PropTypes.array.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onClear: PropTypes.func.isRequired,
+  onRegister: PropTypes.func.isRequired,
+  onEditItem: PropTypes.func.isRequired,
 }

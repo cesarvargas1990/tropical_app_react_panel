@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { CartItemDetails } from './CartItemDetails'
 import { formatMoney } from './utils'
 import { EditIcon, TrashIcon } from './Icons'
@@ -38,19 +39,26 @@ export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
         <EditIcon />
       </button>
 
-      <div
-        className="cart-item-main"
+      <button
         onClick={handleEdit}
+        className="cart-item-main"
+        disabled={isRegistering}
+        type="button"
         style={{
           cursor: isRegistering ? 'not-allowed' : 'pointer',
           opacity: isRegistering ? 0.7 : 1,
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          textAlign: 'left',
+          flex: 1,
         }}
       >
         <div className="cart-item-title">
           {item.productName} ({item.sizeLabel})
         </div>
         <CartItemDetails item={item} />
-      </div>
+      </button>
 
       <div className="cart-item-side">
         <div className="cart-item-subtotal-big">
@@ -70,4 +78,16 @@ export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
       </div>
     </div>
   )
+}
+
+CartItem.propTypes = {
+  item: PropTypes.shape({
+    productName: PropTypes.string.isRequired,
+    sizeLabel: PropTypes.string.isRequired,
+    subtotal: PropTypes.number.isRequired,
+    onRemove: PropTypes.func.isRequired,
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  isRegistering: PropTypes.bool.isRequired,
+  onEditItem: PropTypes.func.isRequired,
 }

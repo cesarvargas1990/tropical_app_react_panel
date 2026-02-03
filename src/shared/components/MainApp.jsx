@@ -125,7 +125,7 @@ function MainApp() {
           }}
           onCancel={() => {
             cart.finishEditCancel()
-            if (cart.editIndex !== null) openCart()
+            if (cart.editIndex === null) openCart()
           }}
           activeSizeId={cart.editIndex !== null ? cart.sizeState.__activeSizeId : null}
         />

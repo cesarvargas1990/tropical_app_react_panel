@@ -71,3 +71,17 @@ export function SizeCard({
     </div>
   )
 }
+
+SizeCard.propTypes = {
+  size: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+  }).isRequired,
+  sizeState: PropTypes.object.isRequired,
+  onQuantityChange: PropTypes.func.isRequired,
+  onGlobalDeliveryChange: PropTypes.func.isRequired,
+  onRowPatch: PropTypes.func.isRequired,
+  renderToppingsDisplay: PropTypes.func.isRequired,
+  formatMoney: PropTypes.func.isRequired,
+  getSizeSubtotal: PropTypes.func.isRequired,
+  getRowSubtotal: PropTypes.func.isRequired,
+}
