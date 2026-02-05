@@ -9,7 +9,7 @@ export async function apiLogin(email, password) {
       password
     })
 
-    if (!res.data || !res.data.token) {
+    if (!res.data?.token) {
       throw new Error("Token no recibido del servidor")
     }
 

@@ -6,8 +6,8 @@ import { KEYPAD_DIGITS } from './constants'
 
 export const KeypadGrid = ({ onKeyPress }) => (
   <div className="keypad-grid">
-    {KEYPAD_DIGITS.map((digits, index) => (
-      <KeypadRow key={index} digits={digits} onKeyPress={onKeyPress} />
+    {KEYPAD_DIGITS.map((digits, rowIndex) => (
+      <KeypadRow key={`row-${rowIndex}`} digits={digits} onKeyPress={onKeyPress} />
     ))}
     <KeypadBottomRow onKeyPress={onKeyPress} />
   </div>
