@@ -69,10 +69,8 @@ describe('CartModal', () => {
     )
 
     const cartItems = container.querySelectorAll('.cart-item')
-    const [editButton, deleteButton] = within(cartItems[0]).getAllByRole(
-      'button',
-      { hidden: true }
-    )
+    const editButton = within(cartItems[0]).getByLabelText(/editar item/i)
+    const deleteButton = within(cartItems[0]).getByLabelText(/eliminar item/i)
 
     fireEvent.click(editButton)
     expect(onEditItem).toHaveBeenCalledWith(firstItem, 0)

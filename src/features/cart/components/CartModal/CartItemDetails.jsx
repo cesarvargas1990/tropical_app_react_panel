@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { formatMoney } from './utils'
 
 export const CartItemDetails = ({ item }) => (
@@ -10,3 +11,13 @@ export const CartItemDetails = ({ item }) => (
     <div className="subtotal-row">Subtotal: {formatMoney(item.subtotal)}</div>
   </div>
 )
+
+CartItemDetails.propTypes = {
+  item: PropTypes.shape({
+    quantity: PropTypes.number.isRequired,
+    unitPrice: PropTypes.number.isRequired,
+    toppings: PropTypes.number,
+    delivery: PropTypes.number,
+    subtotal: PropTypes.number.isRequired,
+  }).isRequired,
+}

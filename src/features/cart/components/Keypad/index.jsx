@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { KeypadHeader } from './KeypadHeader'
 import { KeypadDisplay } from './KeypadDisplay'
 import { KeypadGrid } from './KeypadGrid'
@@ -20,4 +21,11 @@ export function Keypad({ activeField, getFieldValue, onKeyPress, onClose }) {
       </div>
     </div>
   )
+}
+
+Keypad.propTypes = {
+  activeField: PropTypes.object,
+  getFieldValue: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 }

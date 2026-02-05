@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { CartItem } from './CartItem'
 
 export const CartItemsList = ({ items, isRegistering, onEditItem }) => {
@@ -11,7 +12,7 @@ export const CartItemsList = ({ items, isRegistering, onEditItem }) => {
       ) : (
         items.map((item, idx) => (
           <CartItem
-            key={idx}
+            key={`${item.productName}-${item.sizeLabel}-${idx}`}
             item={item}
             index={idx}
             isRegistering={isRegistering}
@@ -21,4 +22,10 @@ export const CartItemsList = ({ items, isRegistering, onEditItem }) => {
       )}
     </div>
   )
+}
+
+CartItemsList.propTypes = {
+  items: PropTypes.array.isRequired,
+  isRegistering: PropTypes.bool.isRequired,
+  onEditItem: PropTypes.func.isRequired,
 }

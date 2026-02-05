@@ -6,7 +6,7 @@ import MainApp from "../../src/shared/components/MainApp"
 import { useProductsData } from '../../src/features/products/hooks/useProductsData'
 import { useProductsRealtime } from '../../src/features/products/hooks/useProductsRealtime'
 import { useProductSizes } from '../../src/features/products/hooks/useProductSizes'
-import { useCartFlow } from '../../src/features/cart/hooks/useCartFlow'
+import { useCartFlow } from '../../src/features/cart'
 import { useSaleRegister } from '../../src/features/sales/hooks/useSaleRegister'
 
 const { swalFireMock } = vi.hoisted(() => ({
@@ -25,7 +25,19 @@ vi.mock('../../src/features/products/hooks/useProductSizes', () => ({
   useProductSizes: vi.fn(),
 }))
 
-vi.mock('../../src/features/cart/hooks/useCartFlow', () => ({
+vi.mock('../../src/features/cart', () => ({
+  CartModal: ({ items, onRegister }) => (
+    <div data-testid="cart-modal">
+      <div>items: {items.length}</div>
+      <button onClick={onRegister}>trigger-register</button>
+    </div>
+  ),
+  SizeModal: ({ onConfirm, onCancel }) => (
+    <div data-testid="size-modal">
+      <button onClick={onConfirm}>confirm-size</button>
+      <button onClick={onCancel}>cancel-size</button>
+    </div>
+  ),
   useCartFlow: vi.fn(),
 }))
 
@@ -45,23 +57,6 @@ vi.mock('../../src/features/products/components/ProductCard', () => ({
   ),
 }))
 
-vi.mock('../../src/features/cart/components/SizeModal', () => ({
-  SizeModal: ({ onConfirm, onCancel }) => (
-    <div data-testid="size-modal">
-      <button onClick={onConfirm}>confirm-size</button>
-      <button onClick={onCancel}>cancel-size</button>
-    </div>
-  ),
-}))
-
-vi.mock('../../src/features/cart/components/CartModal', () => ({
-  CartModal: ({ items, onRegister }) => (
-    <div data-testid="cart-modal">
-      <div>items: {items.length}</div>
-      <button onClick={onRegister}>trigger-register</button>
-    </div>
-  ),
-}))
 
 vi.mock('../../src/features/sales/components/RecentSalesModal', () => ({
   RecentSalesModal: ({ onClose }) => (

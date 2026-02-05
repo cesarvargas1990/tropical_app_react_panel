@@ -1,4 +1,5 @@
 import React from "react"
+import PropTypes from "prop-types"
 import { AppHeaderIconButton } from "./AppHeaderIconButton"
 import { ClockIcon, CartIcon } from "./Icons"
 
@@ -18,4 +19,10 @@ export function AppHeaderIcons({ cartCount, onRecentClick, onCartClick }) {
       </AppHeaderIconButton>
     </div>
   )
+}
+
+AppHeaderIcons.propTypes = {
+  cartCount: PropTypes.number.isRequired,
+  onRecentClick: PropTypes.func.isRequired,
+  onCartClick: PropTypes.func.isRequired,
 }

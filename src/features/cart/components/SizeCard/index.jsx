@@ -76,6 +76,7 @@ export function SizeCard({
 SizeCard.propTypes = {
   size: PropTypes.shape({
     id: PropTypes.number.isRequired,
+    nombre: PropTypes.string.isRequired,
   }).isRequired,
   sizeState: PropTypes.object.isRequired,
   onQuantityChange: PropTypes.func.isRequired,

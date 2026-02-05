@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { KEYPAD_ACTIONS } from './constants'
 
 export const KeypadBottomRow = ({ onKeyPress }) => (
@@ -26,3 +27,7 @@ export const KeypadBottomRow = ({ onKeyPress }) => (
     </button>
   </div>
 )
+
+KeypadBottomRow.propTypes = {
+  onKeyPress: PropTypes.func.isRequired,
+}

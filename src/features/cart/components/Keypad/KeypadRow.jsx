@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { KeypadButton } from './KeypadButton'
 
 export const KeypadRow = ({ digits, onKeyPress }) => (
@@ -8,3 +9,8 @@ export const KeypadRow = ({ digits, onKeyPress }) => (
     ))}
   </div>
 )
+
+KeypadRow.propTypes = {
+  digits: PropTypes.array.isRequired,
+  onKeyPress: PropTypes.func.isRequired,
+}

@@ -8,5 +8,19 @@ export default defineConfig({
     globals: true,
     setupFiles: "./src/test/setup.js",
     include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      exclude: [
+        'node_modules/**',
+        'src/test/**',
+        '**/*.config.js',
+        '**/*.config.mjs',
+        '**/*.test.js',
+        '**/*.test.jsx',
+        'coverage/**',
+        'dist/**'
+      ]
+    }
   },
 })

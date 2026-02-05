@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 export const QuantityControls = ({ quantity, onDecrease, onIncrease }) => (
   <div className="size-row">
@@ -14,3 +15,9 @@ export const QuantityControls = ({ quantity, onDecrease, onIncrease }) => (
     </div>
   </div>
 )
+
+QuantityControls.propTypes = {
+  quantity: PropTypes.number.isRequired,
+  onDecrease: PropTypes.func.isRequired,
+  onIncrease: PropTypes.func.isRequired,
+}

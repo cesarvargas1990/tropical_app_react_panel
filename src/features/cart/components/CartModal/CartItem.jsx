@@ -29,6 +29,7 @@ export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
       <button
         onClick={handleEdit}
         className="icon-circle"
+        aria-label="Editar item"
         disabled={isRegistering}
         style={{
           ...iconButtonStyle,
@@ -67,6 +68,7 @@ export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
         <button
           onClick={handleRemove}
           className="icon-circle"
+          aria-label="Eliminar item"
           disabled={isRegistering}
           style={{
             ...iconButtonStyle,

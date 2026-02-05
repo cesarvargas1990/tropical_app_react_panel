@@ -141,9 +141,9 @@ const CartItem = ({ item, index, isRegistering, onEditItem }) => {
         <EditIcon />
       </button>
 
-      <div
+      <button
         className="cart-item-main"
-        role="button"
+        type="button"
         onClick={handleEdit}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -151,7 +151,7 @@ const CartItem = ({ item, index, isRegistering, onEditItem }) => {
             handleEdit()
           }
         }}
-        tabIndex={isRegistering ? -1 : 0}
+        disabled={isRegistering}
         style={{
           cursor: isRegistering ? 'not-allowed' : 'pointer',
           opacity: isRegistering ? 0.7 : 1,
@@ -161,7 +161,7 @@ const CartItem = ({ item, index, isRegistering, onEditItem }) => {
           {item.productName} ({item.sizeLabel})
         </div>
         <CartItemDetails item={item} />
-      </div>
+      </button>
 
       <div className="cart-item-side">
         <div className="cart-item-subtotal-big">
@@ -240,7 +240,6 @@ export function CartModal({
   return (
     <div
       className="modal-backdrop cart-backdrop"
-      role="button"
       onClick={handleClose}
       onKeyDown={(e) => {
         if (e.key === 'Escape' || e.key === 'Enter') {
@@ -248,7 +247,7 @@ export function CartModal({
           handleClose()
         }
       }}
-      tabIndex={isRegistering ? -1 : 0}
+      role="presentation"
       style={{ cursor: isRegistering ? 'not-allowed' : 'default' }}
     >
       <div
@@ -322,4 +321,5 @@ CartModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onClear: PropTypes.func.isRequired,
   onRegister: PropTypes.func.isRequired,
+  onEditItem: PropTypes.func.isRequired,
 }

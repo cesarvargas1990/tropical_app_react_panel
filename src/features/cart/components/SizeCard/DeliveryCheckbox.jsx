@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 export const DeliveryCheckbox = ({ checked, onChange }) => (
   <div className="size-row checkbox-row">
@@ -8,3 +9,8 @@ export const DeliveryCheckbox = ({ checked, onChange }) => (
     </label>
   </div>
 )
+
+DeliveryCheckbox.propTypes = {
+  checked: PropTypes.bool.isRequired,
+  onChange: PropTypes.func.isRequired,
+}

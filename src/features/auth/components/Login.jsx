@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import PropTypes from "prop-types"
 import Swal from "sweetalert2"
 import { useAuth } from "../hooks/useAuth"
 
@@ -60,6 +61,10 @@ export function Login({ onLoginSuccess }) {
       </div>
     </div>
   )
+}
+
+Login.propTypes = {
+  onLoginSuccess: PropTypes.func.isRequired,
 }
 
 export default Login

@@ -54,7 +54,7 @@ function MainApp() {
   // Re-focus scanner on state changes
   useEffect(() => {
     scanner.forceScannerFocus()
-  }, [scanner.scannerValue, showCart, showRecent, cart.selectedProduct, scanner.forceScannerFocus])
+  }, [scanner, scanner.scannerValue, showCart, showRecent, cart.selectedProduct, scanner.forceScannerFocus])
 
   // Real-time updates via WebSocket
   useProductsRealtime({
@@ -125,7 +125,7 @@ function MainApp() {
           }}
           onCancel={() => {
             cart.finishEditCancel()
-            if (cart.editIndex === null) openCart()
+            if (cart.editIndex !== null) openCart()
           }}
           activeSizeId={cart.editIndex !== null ? cart.sizeState.__activeSizeId : null}
         />

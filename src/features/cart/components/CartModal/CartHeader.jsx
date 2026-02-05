@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 export const CartHeader = ({ onClose, isRegistering }) => (
   <div className="cart-header">
@@ -12,3 +13,8 @@ export const CartHeader = ({ onClose, isRegistering }) => (
     </button>
   </div>
 )
+
+CartHeader.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  isRegistering: PropTypes.bool.isRequired,
+}

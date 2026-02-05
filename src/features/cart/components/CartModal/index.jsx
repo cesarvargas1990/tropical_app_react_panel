@@ -51,7 +51,6 @@ export function CartModal({
   return (
     <div
       className="modal-backdrop cart-backdrop"
-      role="button"
       onClick={handleClose}
       onKeyDown={(e) => {
         if (e.key === 'Escape' || e.key === 'Enter') {
@@ -59,7 +58,7 @@ export function CartModal({
           handleClose()
         }
       }}
-      tabIndex={isRegistering ? -1 : 0}
+      role="presentation"
       style={{ cursor: isRegistering ? 'not-allowed' : 'default' }}
     >
       <div

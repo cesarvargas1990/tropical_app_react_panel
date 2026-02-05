@@ -1,4 +1,5 @@
 import React from "react"
+import PropTypes from "prop-types"
 import { ScannerIcon } from "./Icons"
 
 export function AppHeaderScannerPanel({ scannerProps }) {
@@ -17,12 +18,11 @@ export function AppHeaderScannerPanel({ scannerProps }) {
   }
 
   return (
-    <div
+    <button
       className={panelClassName}
       onClick={scannerProps.onFocusClick}
       onTouchStart={scannerProps.onFocusClick}
-      role="button"
-      tabIndex={0}
+      type="button"
       onKeyDown={handleKeyDown}
       aria-pressed={scannerProps.scannerFocused}
     >
@@ -49,6 +49,23 @@ export function AppHeaderScannerPanel({ scannerProps }) {
         enterKeyHint="done"
         name="scanner"
       />
-    </div>
+    </button>
   )
+}
+
+AppHeaderScannerPanel.propTypes = {
+  scannerProps: PropTypes.shape({
+    appActive: PropTypes.bool.isRequired,
+    scannerFocused: PropTypes.bool.isRequired,
+    onFocusClick: PropTypes.func.isRequired,
+    scannerInputRef: PropTypes.oneOfType([
+      PropTypes.func,
+      PropTypes.shape({ current: PropTypes.any }),
+    ]),
+    scannerValue: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    onKeyDown: PropTypes.func.isRequired,
+    onBlur: PropTypes.func.isRequired,
+    onFocus: PropTypes.func.isRequired,
+  }),
 }

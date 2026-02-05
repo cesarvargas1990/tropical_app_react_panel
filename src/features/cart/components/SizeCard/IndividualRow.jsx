@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 export const IndividualRow = ({
   row,
@@ -44,4 +45,14 @@ export const IndividualRow = ({
       </div>
     </div>
   )
+}
+
+IndividualRow.propTypes = {
+  row: PropTypes.object.isRequired,
+  index: PropTypes.number.isRequired,
+  sizeId: PropTypes.number.isRequired,
+  renderToppingsDisplay: PropTypes.func.isRequired,
+  onRowPatch: PropTypes.func.isRequired,
+  formatMoney: PropTypes.func.isRequired,
+  rowSubtotal: PropTypes.number.isRequired,
 }

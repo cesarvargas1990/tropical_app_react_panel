@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 export const SubtotalRow = ({ subtotal, formatMoney }) => (
   <div
@@ -9,3 +10,8 @@ export const SubtotalRow = ({ subtotal, formatMoney }) => (
     <span>{formatMoney(subtotal)}</span>
   </div>
 )
+
+SubtotalRow.propTypes = {
+  subtotal: PropTypes.number.isRequired,
+  formatMoney: PropTypes.func.isRequired,
+}

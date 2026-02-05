@@ -1,6 +1,7 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
-export const ToppingsInput = ({ 
+export const ToppingsInput = ({
   field, 
   value, 
   activeField, 
@@ -25,16 +26,22 @@ export const ToppingsInput = ({
   }
 
   return (
-    <div
+    <button
       className={`input ${isActive ? 'input-active' : ''}`}
       data-testid={testId}
-      role="button"
-      tabIndex={0}
+      type="button"
       onClick={() => onOpenKeypad(field)}
       onKeyDown={handleKeyDown}
       aria-pressed={isActive}
     >
       {value}
-    </div>
+    </button>
   )
+}
+
+ToppingsInput.propTypes = {
+  field: PropTypes.object.isRequired,
+  value: PropTypes.string.isRequired,
+  activeField: PropTypes.object,
+  onOpenKeypad: PropTypes.func.isRequired,
 }

@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 export const ToppingsSection = ({ sizeId, toppings, renderToppingsDisplay }) => (
   <>
@@ -13,3 +14,9 @@ export const ToppingsSection = ({ sizeId, toppings, renderToppingsDisplay }) => 
     </div>
   </>
 )
+
+ToppingsSection.propTypes = {
+  sizeId: PropTypes.number.isRequired,
+  toppings: PropTypes.number,
+  renderToppingsDisplay: PropTypes.func.isRequired,
+}
