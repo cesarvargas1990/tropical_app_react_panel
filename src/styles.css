@@ -970,12 +970,14 @@ body {
 .cart-item-title {
   font-size: 18px;
   font-weight: 600;
+  color: white;
 }
 
 .cart-item-details {
   margin-top: 4px;
   font-size: 14px;
   opacity: 0.9;
+  color: rgba(255,255,255,0.8);
 }
 
 /* Icon buttons */

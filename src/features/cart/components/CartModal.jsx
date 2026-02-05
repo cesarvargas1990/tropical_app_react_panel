@@ -238,8 +238,7 @@ export function CartModal({
   const isCartEmpty = items.length === 0
 
   return (
-    <button
-      type="button"
+    <div
       className="modal-backdrop cart-backdrop"
       onClick={handleClose}
       onKeyDown={(e) => {
@@ -248,25 +247,14 @@ export function CartModal({
           handleClose()
         }
       }}
-      style={{
-        cursor: isRegistering ? 'not-allowed' : 'default',
-        background: 'transparent',
-        border: 'none',
-        padding: 0,
-        width: '100%',
-        height: '100%',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        zIndex: 1000,
-      }}
-      disabled={isRegistering}
-      aria-label="Cerrar modal"
+      role="presentation"
+      style={{ cursor: isRegistering ? 'not-allowed' : 'default' }}
     >
       <div
         className="cart-modal"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
+        role="presentation"
         style={{
           position: 'relative',
           opacity: isRegistering ? 0.9 : 1,
