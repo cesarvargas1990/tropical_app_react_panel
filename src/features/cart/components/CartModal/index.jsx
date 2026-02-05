@@ -64,7 +64,6 @@ export function CartModal({
         className="cart-modal"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
-        role="presentation"
         style={{
           position: 'relative',
           opacity: isRegistering ? 0.9 : 1,
