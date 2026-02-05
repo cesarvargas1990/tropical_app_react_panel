@@ -69,3 +69,4 @@ AppHeaderScannerPanel.propTypes = {
     onFocus: PropTypes.func.isRequired,
   }),
 }
+
