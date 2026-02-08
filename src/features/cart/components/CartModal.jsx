@@ -179,7 +179,7 @@ const CartItem = ({ item, index, isRegistering, onEditItem }) => {
           <TrashIcon />
         </button>
       </div>
-    </button>
+    </div>
   )
 }
 
