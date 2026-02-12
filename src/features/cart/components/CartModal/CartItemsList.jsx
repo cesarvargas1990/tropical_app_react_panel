@@ -1,9 +1,9 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { CartItem } from './CartItem'
+import React from "react";
+import PropTypes from "prop-types";
+import { CartItem } from "./CartItem";
 
 export const CartItemsList = ({ items, isRegistering, onEditItem }) => {
-  const isCartEmpty = items.length === 0
+  const isCartEmpty = items.length === 0;
 
   return (
     <div className="cart-items">
@@ -21,11 +21,11 @@ export const CartItemsList = ({ items, isRegistering, onEditItem }) => {
         ))
       )}
     </div>
-  )
-}
+  );
+};
 
 CartItemsList.propTypes = {
   items: PropTypes.array.isRequired,
   isRegistering: PropTypes.bool.isRequired,
   onEditItem: PropTypes.func.isRequired,
-}
+};

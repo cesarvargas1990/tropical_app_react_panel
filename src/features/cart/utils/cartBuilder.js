@@ -46,18 +46,18 @@ export function buildCartItems({
       (x) =>
         x.sabor_id === selectedProduct.sabor_id &&
         x.carac_id === selectedProduct.carac_id &&
-        x.tamano_id === s.id
+        x.tamano_id === s.id,
     );
 
     const characteristic =
       selectedProduct.caracteristica ??
       selectedProduct.caracteristica_nombre ??
       selectedProduct.feature ??
-      ""
+      "";
 
     const productName = characteristic
       ? `${selectedProduct.name} (${characteristic})`
-      : selectedProduct.name
+      : selectedProduct.name;
 
     newItems.push({
       productName,

@@ -1,7 +1,7 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from "react";
+import PropTypes from "prop-types";
 
-export const KeypadButton = ({ value, onClick, variant = 'primary' }) => (
+export const KeypadButton = ({ value, onClick, variant = "primary" }) => (
   <button
     type="button"
     className={`btn-${variant}`}
@@ -9,10 +9,10 @@ export const KeypadButton = ({ value, onClick, variant = 'primary' }) => (
   >
     {value}
   </button>
-)
+);
 
 KeypadButton.propTypes = {
   value: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
   variant: PropTypes.string,
-}
+};

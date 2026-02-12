@@ -1,8 +1,8 @@
-import React from "react"
-import PropTypes from "prop-types"
-import { AppHeaderIcons } from "./AppHeaderIcons"
-import { AppHeaderScannerPanel } from "./AppHeaderScannerPanel"
-import { AppHeaderTitle } from "./AppHeaderTitle"
+import React from "react";
+import PropTypes from "prop-types";
+import { AppHeaderIcons } from "./AppHeaderIcons";
+import { AppHeaderScannerPanel } from "./AppHeaderScannerPanel";
+import { AppHeaderTitle } from "./AppHeaderTitle";
 
 /**
  * Componente del header de la aplicación
@@ -26,7 +26,7 @@ export function AppHeader({
         />
       </div>
     </header>
-  )
+  );
 }
 
 AppHeader.propTypes = {
@@ -34,4 +34,4 @@ AppHeader.propTypes = {
   cartCount: PropTypes.number.isRequired,
   onRecentClick: PropTypes.func.isRequired,
   onCartClick: PropTypes.func.isRequired,
-}
+};

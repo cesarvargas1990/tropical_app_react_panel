@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react"
-import { apiLogin } from "../services/authService"
+import { useState, useCallback } from "react";
+import { apiLogin } from "../services/authService";
 
 /**
  * Hook personalizado para manejar autenticación
@@ -7,37 +7,37 @@ import { apiLogin } from "../services/authService"
  */
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!localStorage.getItem("auth_token")
-  )
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
+    () => !!localStorage.getItem("auth_token"),
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const login = useCallback(async (email, password) => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const token = await apiLogin(email, password)
-      localStorage.setItem("auth_token", token)
-      setIsAuthenticated(true)
-      return { success: true, token }
+      const token = await apiLogin(email, password);
+      localStorage.setItem("auth_token", token);
+      setIsAuthenticated(true);
+      return { success: true, token };
     } catch (err) {
-      const errorMessage = err.message || "Credenciales incorrectas"
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
+      const errorMessage = err.message || "Credenciales incorrectas";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem("auth_token")
-    setIsAuthenticated(false)
-  }, [])
+    localStorage.removeItem("auth_token");
+    setIsAuthenticated(false);
+  }, []);
 
   const clearError = useCallback(() => {
-    setError(null)
-  }, [])
+    setError(null);
+  }, []);
 
   return {
     isAuthenticated,
@@ -46,5 +46,5 @@ export function useAuth() {
     login,
     logout,
     clearError,
-  }
+  };
 }

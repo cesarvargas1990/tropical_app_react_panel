@@ -1,18 +1,18 @@
-import React from 'react'
-import { describe, it, expect, vi } from 'vitest'
+import React from "react";
+import { describe, it, expect, vi } from "vitest";
 import {
   fireEvent,
   render,
   screen,
   waitFor,
   within,
-} from '@testing-library/react'
+} from "@testing-library/react";
 
-import { CartModal } from '../../../src/features/cart/components/CartModal/index'
+import { CartModal } from "../../../src/features/cart/components/CartModal/index";
 
 const buildItem = (overrides = {}) => ({
-  productName: 'Jugo Tropical',
-  sizeLabel: 'M',
+  productName: "Jugo Tropical",
+  sizeLabel: "M",
   quantity: 2,
   unitPrice: 1000,
   toppings: 500,
@@ -20,11 +20,11 @@ const buildItem = (overrides = {}) => ({
   subtotal: 2500,
   onRemove: vi.fn(),
   ...overrides,
-})
+});
 
-describe('CartModal', () => {
-  it('shows empty state and disables register button when there are no items', () => {
-    const onClose = vi.fn()
+describe("CartModal", () => {
+  it("shows empty state and disables register button when there are no items", () => {
+    const onClose = vi.fn();
 
     render(
       <CartModal
@@ -33,30 +33,30 @@ describe('CartModal', () => {
         onClear={vi.fn()}
         onRegister={vi.fn()}
         onEditItem={vi.fn()}
-      />
-    )
+      />,
+    );
 
     expect(
-      screen.getByText('No hay productos en el carrito.')
-    ).toBeInTheDocument()
+      screen.getByText("No hay productos en el carrito."),
+    ).toBeInTheDocument();
 
-    const registerButton = screen.getByRole('button', {
+    const registerButton = screen.getByRole("button", {
       name: /Registrar venta/i,
-    })
-    expect(registerButton).toBeDisabled()
+    });
+    expect(registerButton).toBeDisabled();
 
-    fireEvent.click(screen.getByRole('button', { name: /Cerrar/i }))
-    expect(onClose).toHaveBeenCalledTimes(1)
-  })
+    fireEvent.click(screen.getByRole("button", { name: /Cerrar/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 
-  it('allows editing and removing items when not registering', () => {
-    const onEditItem = vi.fn()
-    const firstItem = buildItem()
+  it("allows editing and removing items when not registering", () => {
+    const onEditItem = vi.fn();
+    const firstItem = buildItem();
     const secondItem = buildItem({
-      productName: 'Ceviche',
-      sizeLabel: 'XL',
+      productName: "Ceviche",
+      sizeLabel: "XL",
       subtotal: 8000,
-    })
+    });
 
     const { container } = render(
       <CartModal
@@ -65,29 +65,29 @@ describe('CartModal', () => {
         onClear={vi.fn()}
         onRegister={vi.fn()}
         onEditItem={onEditItem}
-      />
-    )
+      />,
+    );
 
-    const cartItems = container.querySelectorAll('.cart-item')
-    const editButton = within(cartItems[0]).getByLabelText(/editar item/i)
-    const deleteButton = within(cartItems[0]).getByLabelText(/eliminar item/i)
+    const cartItems = container.querySelectorAll(".cart-item");
+    const editButton = within(cartItems[0]).getByLabelText(/editar item/i);
+    const deleteButton = within(cartItems[0]).getByLabelText(/eliminar item/i);
 
-    fireEvent.click(editButton)
-    expect(onEditItem).toHaveBeenCalledWith(firstItem, 0)
+    fireEvent.click(editButton);
+    expect(onEditItem).toHaveBeenCalledWith(firstItem, 0);
 
-    fireEvent.click(deleteButton)
-    expect(firstItem.onRemove).toHaveBeenCalledWith(0)
+    fireEvent.click(deleteButton);
+    expect(firstItem.onRemove).toHaveBeenCalledWith(0);
 
-    expect(screen.getByText('Ceviche (XL)')).toBeInTheDocument()
-    const subtotalRow = within(cartItems[1]).getByText(/Subtotal:/i)
-    expect(subtotalRow).toHaveTextContent(/8\.000/)
-  })
+    expect(screen.getByText("Ceviche (XL)")).toBeInTheDocument();
+    const subtotalRow = within(cartItems[1]).getByText(/Subtotal:/i);
+    expect(subtotalRow).toHaveTextContent(/8\.000/);
+  });
 
-  it('awaits onRegister and blocks interactions until it resolves', async () => {
-    const onRegister = vi.fn(() => Promise.resolve())
-    const onClear = vi.fn()
-    const onClose = vi.fn()
-    const onEditItem = vi.fn()
+  it("awaits onRegister and blocks interactions until it resolves", async () => {
+    const onRegister = vi.fn(() => Promise.resolve());
+    const onClear = vi.fn();
+    const onClose = vi.fn();
+    const onEditItem = vi.fn();
 
     const { container } = render(
       <CartModal
@@ -96,31 +96,31 @@ describe('CartModal', () => {
         onClear={onClear}
         onRegister={onRegister}
         onEditItem={onEditItem}
-      />
-    )
+      />,
+    );
 
-    const registerButton = screen.getByRole('button', {
+    const registerButton = screen.getByRole("button", {
       name: /Registrar venta/i,
-    })
-    fireEvent.click(registerButton)
+    });
+    fireEvent.click(registerButton);
 
-    expect(onRegister).toHaveBeenCalledTimes(1)
-    expect(registerButton).toBeDisabled()
-    expect(registerButton).toHaveTextContent('Registrando...')
+    expect(onRegister).toHaveBeenCalledTimes(1);
+    expect(registerButton).toBeDisabled();
+    expect(registerButton).toHaveTextContent("Registrando...");
 
-    fireEvent.click(screen.getByRole('button', { name: /Cerrar/i }))
-    expect(onClose).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole("button", { name: /Cerrar/i }));
+    expect(onClose).not.toHaveBeenCalled();
 
-    const editButton = container.querySelector('.cart-item .icon-circle')
-    fireEvent.click(editButton)
-    expect(onEditItem).not.toHaveBeenCalled()
+    const editButton = container.querySelector(".cart-item .icon-circle");
+    fireEvent.click(editButton);
+    expect(onEditItem).not.toHaveBeenCalled();
 
     await waitFor(() => {
-      expect(onClear).toHaveBeenCalledTimes(1)
-      expect(onClose).toHaveBeenCalledTimes(1)
-    })
+      expect(onClear).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
 
-    expect(registerButton).not.toBeDisabled()
-    expect(registerButton).toHaveTextContent('Registrar venta')
-  })
-})
+    expect(registerButton).not.toBeDisabled();
+    expect(registerButton).toHaveTextContent("Registrar venta");
+  });
+});

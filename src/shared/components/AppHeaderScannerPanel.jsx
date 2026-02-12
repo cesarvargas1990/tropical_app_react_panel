@@ -1,21 +1,21 @@
-import React from "react"
-import PropTypes from "prop-types"
-import { ScannerIcon } from "./Icons"
+import React from "react";
+import PropTypes from "prop-types";
+import { ScannerIcon } from "./Icons";
 
 export function AppHeaderScannerPanel({ scannerProps }) {
-  if (!scannerProps) return null
+  if (!scannerProps) return null;
 
-  const isFocused = scannerProps.appActive && scannerProps.scannerFocused
+  const isFocused = scannerProps.appActive && scannerProps.scannerFocused;
   const panelClassName = `scanner-panel scanner-panel-top ${
     isFocused ? "scanner-panel-focused" : "scanner-panel-blur"
-  }`
+  }`;
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      scannerProps.onFocusClick()
+      event.preventDefault();
+      scannerProps.onFocusClick();
     }
-  }
+  };
 
   return (
     <button
@@ -50,7 +50,7 @@ export function AppHeaderScannerPanel({ scannerProps }) {
         name="scanner"
       />
     </button>
-  )
+  );
 }
 
 AppHeaderScannerPanel.propTypes = {
@@ -68,6 +68,4 @@ AppHeaderScannerPanel.propTypes = {
     onBlur: PropTypes.func.isRequired,
     onFocus: PropTypes.func.isRequired,
   }),
-}
-
- 
+};

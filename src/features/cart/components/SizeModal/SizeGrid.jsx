@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { SizeCard } from '../SizeCard/index'
+import React from "react";
+import PropTypes from "prop-types";
+import { SizeCard } from "../SizeCard/index";
 
 export const SizeGrid = ({
   sizes,
@@ -29,7 +29,7 @@ export const SizeGrid = ({
       />
     ))}
   </div>
-)
+);
 
 SizeGrid.propTypes = {
   sizes: PropTypes.array.isRequired,
@@ -41,4 +41,4 @@ SizeGrid.propTypes = {
   formatMoney: PropTypes.func.isRequired,
   getSizeSubtotal: PropTypes.func.isRequired,
   getRowSubtotal: PropTypes.func.isRequired,
-}
+};

@@ -6,6 +6,6 @@ export async function getLatestSales() {
 }
 
 export async function registerSale(cartItems) {
-  const res = await api.post("/api/sales", cartItems)
-  return res.data
+  const res = await api.post("/api/sales", cartItems);
+  return res.data;
 }

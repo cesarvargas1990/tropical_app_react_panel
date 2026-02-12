@@ -1,4 +1,4 @@
-import React from "react"
+import React from "react";
 
 export const ScannerIcon = () => (
   <svg
@@ -17,7 +17,7 @@ export const ScannerIcon = () => (
     <path d="M12 6v12" />
     <path d="M16 6v12" />
   </svg>
-)
+);
 
 export const ClockIcon = () => (
   <svg
@@ -31,7 +31,7 @@ export const ClockIcon = () => (
     <circle cx="12" cy="12" r="10"></circle>
     <polyline points="12 6 12 12 16 14"></polyline>
   </svg>
-)
+);
 
 export const CartIcon = () => (
   <svg
@@ -46,4 +46,4 @@ export const CartIcon = () => (
     <circle cx="20" cy="21" r="1"></circle>
     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
   </svg>
-)
+);

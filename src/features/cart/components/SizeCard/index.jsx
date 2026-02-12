@@ -1,11 +1,11 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { SizeCardTitle } from './SizeCardTitle'
-import { QuantityControls } from './QuantityControls'
-import { ToppingsSection } from './ToppingsSection'
-import { DeliveryCheckbox } from './DeliveryCheckbox'
-import { IndividualRowsList } from './IndividualRowsList'
-import { SubtotalRow } from './SubtotalRow'
+import React from "react";
+import PropTypes from "prop-types";
+import { SizeCardTitle } from "./SizeCardTitle";
+import { QuantityControls } from "./QuantityControls";
+import { ToppingsSection } from "./ToppingsSection";
+import { DeliveryCheckbox } from "./DeliveryCheckbox";
+import { IndividualRowsList } from "./IndividualRowsList";
+import { SubtotalRow } from "./SubtotalRow";
 
 /**
  * Componente de tarjeta individual para cada tamaño de producto
@@ -26,16 +26,16 @@ export function SizeCard({
     toppings: 0,
     delivery: false,
     items: [],
-  }
+  };
 
-  const quantity = st.quantity || 0
-  const items = st.items || []
-  const cardSubtotal = getSizeSubtotal(size, sizeState)
+  const quantity = st.quantity || 0;
+  const items = st.items || [];
+  const cardSubtotal = getSizeSubtotal(size, sizeState);
 
-  const handleDecrease = () => onQuantityChange(size.id, -1)
-  const handleIncrease = () => onQuantityChange(size.id, 1)
+  const handleDecrease = () => onQuantityChange(size.id, -1);
+  const handleIncrease = () => onQuantityChange(size.id, 1);
   const handleDeliveryChange = (e) =>
-    onGlobalDeliveryChange(size.id, e.target.checked)
+    onGlobalDeliveryChange(size.id, e.target.checked);
 
   return (
     <div className="size-card">
@@ -53,10 +53,7 @@ export function SizeCard({
         renderToppingsDisplay={renderToppingsDisplay}
       />
 
-      <DeliveryCheckbox
-        checked={st.delivery}
-        onChange={handleDeliveryChange}
-      />
+      <DeliveryCheckbox checked={st.delivery} onChange={handleDeliveryChange} />
 
       <IndividualRowsList
         items={items}
@@ -70,7 +67,7 @@ export function SizeCard({
 
       <SubtotalRow subtotal={cardSubtotal} formatMoney={formatMoney} />
     </div>
-  )
+  );
 }
 
 SizeCard.propTypes = {
@@ -86,4 +83,4 @@ SizeCard.propTypes = {
   formatMoney: PropTypes.func.isRequired,
   getSizeSubtotal: PropTypes.func.isRequired,
   getRowSubtotal: PropTypes.func.isRequired,
-}
+};

@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+coverage
+htmlcov
+venv
+.scannerwork
+.pytest_cache
+.ruff_cache
+sonar-report.json
+sonar-report-updated.json
+lint-report.txt

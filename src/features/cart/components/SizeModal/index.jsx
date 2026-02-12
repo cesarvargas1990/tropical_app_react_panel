@@ -1,14 +1,14 @@
-import React, { useMemo } from 'react'
-import PropTypes from 'prop-types'
-import { useSizeCalculations } from '../../hooks/useSizeCalculations'
-import { useKeypad } from '../../hooks/useKeypad'
-import { useSizeUpdates } from '../../hooks/useSizeUpdates'
-import { Keypad } from '../Keypad/index'
-import { ModalTitle } from './ModalTitle'
-import { SizeGrid } from './SizeGrid'
-import { TotalSection } from './TotalSection'
-import { ModalActions } from './ModalActions'
-import { ToppingsInput } from './ToppingsInput'
+import React, { useMemo } from "react";
+import PropTypes from "prop-types";
+import { useSizeCalculations } from "../../hooks/useSizeCalculations";
+import { useKeypad } from "../../hooks/useKeypad";
+import { useSizeUpdates } from "../../hooks/useSizeUpdates";
+import { Keypad } from "../Keypad/index";
+import { ModalTitle } from "./ModalTitle";
+import { SizeGrid } from "./SizeGrid";
+import { TotalSection } from "./TotalSection";
+import { ModalActions } from "./ModalActions";
+import { ToppingsInput } from "./ToppingsInput";
 
 export function SizeModal({
   product,
@@ -21,10 +21,10 @@ export function SizeModal({
 }) {
   // Hooks personalizados
   const { formatMoney, getSizeSubtotal, getRowSubtotal, getTotalGeneral } =
-    useSizeCalculations()
+    useSizeCalculations();
 
   const { handleQuantityChange, handleGlobalDeliveryChange, handleRowPatch } =
-    useSizeUpdates({ sizeState, onUpdateSize })
+    useSizeUpdates({ sizeState, onUpdateSize });
 
   const {
     activeField,
@@ -33,18 +33,18 @@ export function SizeModal({
     handleKeypadPress,
     openKeypad,
     closeKeypad,
-  } = useKeypad({ sizeState, onUpdateSize })
+  } = useKeypad({ sizeState, onUpdateSize });
 
   // Datos calculados con memoización
   const visibleSizes = useMemo(
     () => (activeSizeId ? sizes.filter((s) => s.id === activeSizeId) : sizes),
-    [activeSizeId, sizes]
-  )
+    [activeSizeId, sizes],
+  );
 
   const totalGeneral = useMemo(
     () => getTotalGeneral(visibleSizes, sizeState),
-    [visibleSizes, sizeState, getTotalGeneral]
-  )
+    [visibleSizes, sizeState, getTotalGeneral],
+  );
 
   // Renderiza el display de toppings usando componente reutilizable
   const renderToppingsDisplay = (field, value) => (
@@ -54,7 +54,7 @@ export function SizeModal({
       activeField={activeField}
       onOpenKeypad={openKeypad}
     />
-  )
+  );
 
   return (
     <div className="modal-backdrop">
@@ -94,7 +94,7 @@ export function SizeModal({
         />
       </div>
     </div>
-  )
+  );
 }
 
 SizeModal.propTypes = {
@@ -108,4 +108,4 @@ SizeModal.propTypes = {
   onConfirm: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   activeSizeId: PropTypes.number,
-}
+};

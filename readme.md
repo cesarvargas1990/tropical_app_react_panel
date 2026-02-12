@@ -20,17 +20,21 @@ Panel de administración de ventas desarrollado con **React + Vite**, optimizado
 ## 🚀 Quick Start
 
 ### Instalación
+
 ```bash
 npm install
 ```
 
 ### Desarrollo
+
 ```bash
 npm run dev
 ```
+
 Abre [http://localhost:5173](http://localhost:5173) en tu navegador.
 
 ### Pruebas
+
 ```bash
 # Ejecutar tests una vez
 npm test
@@ -69,17 +73,21 @@ tests/                 # Suite centralizada de tests (126+ tests)
 ## 📦 Build y Despliegue
 
 ### Build estándar
+
 ```bash
 npm run build
 ```
+
 Genera optimizado con `--base=/tropical/` y copia automáticamente a `../public/tropical` via script `deploy`.
 
 ### Build personalizado
+
 ```bash
 vite build --base=/tropical/
 ```
 
 El bundle final queda en `dist/`. Para desplegar manualmente:
+
 ```bash
 cp -R dist ../public/tropical
 ```
@@ -99,12 +107,12 @@ Para más detalles, ver [TESTS_STRUCTURE.md](TESTS_STRUCTURE.md)
 
 ## 🔧 Scripts disponibles
 
-| Script | Descripción |
-|--------|-----------|
-| `npm run dev` | Inicia servidor de desarrollo |
-| `npm run build` | Build para producción |
-| `npm test` | Ejecuta tests una vez |
-| `npm run test:watch` | Tests en modo watch |
-| `npm run coverage` | Reporte de cobertura |
+| Script               | Descripción                   |
+| -------------------- | ----------------------------- |
+| `npm run dev`        | Inicia servidor de desarrollo |
+| `npm run build`      | Build para producción         |
+| `npm test`           | Ejecuta tests una vez         |
+| `npm run test:watch` | Tests en modo watch           |
+| `npm run coverage`   | Reporte de cobertura          |
 
 ---

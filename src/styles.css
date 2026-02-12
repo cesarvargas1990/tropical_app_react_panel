@@ -27,8 +27,13 @@
 html,
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    'SF Pro Text', 'Segoe UI', sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Segoe UI",
+    sans-serif;
   background-color: var(--bg-main);
   color: var(--text-primary);
   overscroll-behavior: none;
@@ -101,7 +106,9 @@ body {
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   border: 2px solid #991b1b;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .scanner-panel-top {
@@ -186,7 +193,9 @@ body {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  transition: transform 0.15s ease, box-shadow 0.15s ease,
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
     border-color 0.15s ease;
 }
 
@@ -198,7 +207,8 @@ body {
 
 .product-image-wrapper {
   padding: 18px;
-  background: radial-gradient(circle at top left, #f97316 0, transparent 50%),
+  background:
+    radial-gradient(circle at top left, #f97316 0, transparent 50%),
     radial-gradient(circle at bottom right, #22d3ee 0, transparent 55%);
 }
 
@@ -242,7 +252,9 @@ body {
   background-image: linear-gradient(90deg, var(--accent), var(--accent2));
   color: #f9fafb;
   box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
-  transition: transform 0.12s ease, box-shadow 0.12s ease,
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
     filter 0.12s ease;
 }
 
@@ -281,8 +293,6 @@ body {
   }
 }
 
-
-
 /* 1 columna móvil pequeño */
 @media (max-width: 640px) {
   .product-panel {
@@ -297,8 +307,17 @@ body {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.25), transparent 55%),
-    radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.25), transparent 55%),
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(59, 130, 246, 0.25),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(236, 72, 153, 0.25),
+      transparent 55%
+    ),
     rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
@@ -334,7 +353,7 @@ body {
 .size-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  justify-content: center;     /* 👈 Centra cuando hay pocos */
+  justify-content: center; /* 👈 Centra cuando hay pocos */
   gap: 18px;
   margin-bottom: 22px;
 }
@@ -416,7 +435,7 @@ body {
   gap: 6px;
 }
 
-.checkbox-row input[type='checkbox'] {
+.checkbox-row input[type="checkbox"] {
   accent-color: #ec4899;
 }
 
@@ -446,11 +465,11 @@ body {
 }
 
 .modal-actions {
-  margin-top: 26px;                 /* Más aire arriba */
-  padding-right: 10px;              /* Separación al borde derecho */
+  margin-top: 26px; /* Más aire arriba */
+  padding-right: 10px; /* Separación al borde derecho */
   display: flex;
-  justify-content: flex-end;        /* Botones alineados derecha */
-  gap: 8px;                        /* Separación entre los botones */
+  justify-content: flex-end; /* Botones alineados derecha */
+  gap: 8px; /* Separación entre los botones */
   align-items: center;
 }
 
@@ -507,11 +526,10 @@ body {
 
 .cart-actions {
   display: flex;
-  justify-content: flex-end;  /* 🔥 Mueve todo a la derecha */
-  gap: 8px;                  /* separa los botones */
+  justify-content: flex-end; /* 🔥 Mueve todo a la derecha */
+  gap: 8px; /* separa los botones */
   margin-top: 10px;
 }
-
 
 .cart-header {
   display: flex;
@@ -667,21 +685,20 @@ body {
   left: 0;
   right: 0;
 
-  z-index: 9999;             /* encima de todo */
-  background: #090f1a;       /* tu color actual */
+  z-index: 9999; /* encima de todo */
+  background: #090f1a; /* tu color actual */
   padding: 20px 40px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .main {
   padding-top: 120px; /* ajusta según el alto de tu header real */
 }
-
 
 /* Fondo general */
 .login-container {
@@ -753,7 +770,7 @@ body {
 .cart-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -826,7 +843,7 @@ body {
 .modal::-webkit-scrollbar-thumb,
 .cart-items::-webkit-scrollbar-thumb,
 .size-grid::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 6px;
 }
 
@@ -836,7 +853,7 @@ body {
 .cart-footer,
 .modal-actions {
   padding-top: 18px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   justify-content: flex-end;
   gap: 16px;
@@ -857,7 +874,7 @@ body {
 
 .btn-secondary {
   background: #2b3245;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 12px 24px;
   border-radius: 14px;
   color: #fff;
@@ -869,7 +886,7 @@ body {
   color: #fff;
   padding: 6px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
 }
 
@@ -952,7 +969,7 @@ body {
    ITEM DEL CARRITO
    ================================ */
 .cart-item {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   padding: 16px;
   border-radius: 14px;
   display: flex;
@@ -977,7 +994,7 @@ body {
   margin-top: 4px;
   font-size: 14px;
   opacity: 0.9;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Icon buttons */

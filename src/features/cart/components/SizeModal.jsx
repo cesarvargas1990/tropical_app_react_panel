@@ -1,10 +1,10 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { useSizeCalculations } from '../hooks/useSizeCalculations'
-import { useKeypad } from '../hooks/useKeypad'
-import { useSizeUpdates } from '../hooks/useSizeUpdates'
-import { Keypad } from './Keypad'
-import { SizeCard } from './SizeCard'
+import React from "react";
+import PropTypes from "prop-types";
+import { useSizeCalculations } from "../hooks/useSizeCalculations";
+import { useKeypad } from "../hooks/useKeypad";
+import { useSizeUpdates } from "../hooks/useSizeUpdates";
+import { Keypad } from "./Keypad";
+import { SizeCard } from "./SizeCard";
 
 export function SizeModal({
   product,
@@ -17,10 +17,10 @@ export function SizeModal({
 }) {
   // Hooks personalizados
   const { formatMoney, getSizeSubtotal, getRowSubtotal, getTotalGeneral } =
-    useSizeCalculations()
+    useSizeCalculations();
 
   const { handleQuantityChange, handleGlobalDeliveryChange, handleRowPatch } =
-    useSizeUpdates({ sizeState, onUpdateSize })
+    useSizeUpdates({ sizeState, onUpdateSize });
 
   const {
     activeField,
@@ -29,14 +29,14 @@ export function SizeModal({
     handleKeypadPress,
     openKeypad,
     closeKeypad,
-  } = useKeypad({ sizeState, onUpdateSize })
+  } = useKeypad({ sizeState, onUpdateSize });
 
   // Datos calculados
   const visibleSizes = activeSizeId
     ? sizes.filter((s) => s.id === activeSizeId)
-    : sizes
+    : sizes;
 
-  const totalGeneral = getTotalGeneral(visibleSizes, sizeState)
+  const totalGeneral = getTotalGeneral(visibleSizes, sizeState);
 
   // Renderiza el display de toppings (reutilizable)
   const renderToppingsDisplay = (field, value) => (
@@ -46,11 +46,11 @@ export function SizeModal({
         activeField.type === field.type &&
         activeField.sizeId === field.sizeId &&
         activeField.index === field.index
-          ? 'input-active'
-          : ''
+          ? "input-active"
+          : ""
       }`}
       data-testid={
-        field.type === 'global'
+        field.type === "global"
           ? `toppings-global-${field.sizeId}`
           : `toppings-row-${field.sizeId}-${field.index}`
       }
@@ -65,7 +65,7 @@ export function SizeModal({
     >
       {value}
     </button>
-  )
+  );
 
   return (
     <div className="modal-backdrop">
@@ -119,7 +119,7 @@ export function SizeModal({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 SizeModal.propTypes = {
@@ -130,4 +130,4 @@ SizeModal.propTypes = {
   onConfirm: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   activeSizeId: PropTypes.number,
-}
+};

@@ -1,7 +1,7 @@
-import React from "react"
-import { describe, it, expect, vi } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
-import { CartModal } from "../../../src/features/cart/components/CartModal"
+import React from "react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { CartModal } from "../../../src/features/cart/components/CartModal";
 
 describe("CartModal (legacy)", () => {
   const buildItem = () => ({
@@ -13,14 +13,14 @@ describe("CartModal (legacy)", () => {
     toppings: 0,
     delivery: 0,
     onRemove: vi.fn(),
-  })
+  });
 
   it("renderiza y permite acciones básicas", async () => {
-    const onClose = vi.fn()
-    const onClear = vi.fn()
-    const onRegister = vi.fn(() => Promise.resolve())
-    const onEditItem = vi.fn()
-    const item = buildItem()
+    const onClose = vi.fn();
+    const onClear = vi.fn();
+    const onRegister = vi.fn(() => Promise.resolve());
+    const onEditItem = vi.fn();
+    const item = buildItem();
 
     const { container } = render(
       <CartModal
@@ -29,28 +29,30 @@ describe("CartModal (legacy)", () => {
         onClear={onClear}
         onRegister={onRegister}
         onEditItem={onEditItem}
-      />
-    )
+      />,
+    );
 
-    fireEvent.click(screen.getByText("Cerrar"))
-    expect(onClose).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByText("Cerrar"));
+    expect(onClose).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByText("Vaciar"))
-    expect(onClear).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByText("Vaciar"));
+    expect(onClear).toHaveBeenCalledTimes(1);
 
-    const editButton = container.querySelector(".cart-item-main")
-    fireEvent.click(editButton)
-    expect(onEditItem).toHaveBeenCalledTimes(1)
+    const editButton = container.querySelector(".cart-item-main");
+    fireEvent.click(editButton);
+    expect(onEditItem).toHaveBeenCalledTimes(1);
 
-    const removeButton = container.querySelector(".cart-item-side .icon-circle")
-    fireEvent.click(removeButton)
-    expect(item.onRemove).toHaveBeenCalledTimes(1)
+    const removeButton = container.querySelector(
+      ".cart-item-side .icon-circle",
+    );
+    fireEvent.click(removeButton);
+    expect(item.onRemove).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByText("Registrar venta"))
+    fireEvent.click(screen.getByText("Registrar venta"));
     await waitFor(() => {
-      expect(onRegister).toHaveBeenCalledTimes(1)
-    })
-  })
+      expect(onRegister).toHaveBeenCalledTimes(1);
+    });
+  });
 
   it("muestra estado vacío", () => {
     render(
@@ -60,11 +62,11 @@ describe("CartModal (legacy)", () => {
         onClear={vi.fn()}
         onRegister={vi.fn()}
         onEditItem={vi.fn()}
-      />
-    )
+      />,
+    );
 
     expect(
-      screen.getByText("No hay productos en el carrito.")
-    ).toBeInTheDocument()
-  })
-})
+      screen.getByText("No hay productos en el carrito."),
+    ).toBeInTheDocument();
+  });
+});

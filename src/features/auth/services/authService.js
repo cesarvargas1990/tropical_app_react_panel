@@ -1,20 +1,20 @@
-import axios from "axios"
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 export async function apiLogin(email, password) {
   try {
     const res = await axios.post(`${API_URL}/api/login`, {
       email,
-      password
-    })
+      password,
+    });
 
     if (!res.data?.token) {
-      throw new Error("Token no recibido del servidor")
+      throw new Error("Token no recibido del servidor");
     }
 
-    return res.data.token
+    return res.data.token;
   } catch {
-    throw new Error("Credenciales incorrectas")
+    throw new Error("Credenciales incorrectas");
   }
 }

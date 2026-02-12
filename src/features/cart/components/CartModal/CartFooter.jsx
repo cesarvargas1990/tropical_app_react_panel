@@ -1,13 +1,13 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { formatMoney } from './utils'
+import React from "react";
+import PropTypes from "prop-types";
+import { formatMoney } from "./utils";
 
-export const CartFooter = ({ 
-  total, 
-  isCartEmpty, 
-  isRegistering, 
-  onClear, 
-  onRegister 
+export const CartFooter = ({
+  total,
+  isCartEmpty,
+  isRegistering,
+  onClear,
+  onRegister,
 }) => (
   <div className="cart-footer">
     <div className="cart-total">
@@ -28,11 +28,11 @@ export const CartFooter = ({
         onClick={onRegister}
         disabled={isCartEmpty || isRegistering}
       >
-        {isRegistering ? 'Registrando...' : 'Registrar venta'}
+        {isRegistering ? "Registrando..." : "Registrar venta"}
       </button>
     </div>
   </div>
-)
+);
 
 CartFooter.propTypes = {
   total: PropTypes.number.isRequired,
@@ -40,4 +40,4 @@ CartFooter.propTypes = {
   isRegistering: PropTypes.bool.isRequired,
   onClear: PropTypes.func.isRequired,
   onRegister: PropTypes.func.isRequired,
-}
+};

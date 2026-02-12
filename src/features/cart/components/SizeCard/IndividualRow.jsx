@@ -1,5 +1,5 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from "react";
+import PropTypes from "prop-types";
 
 export const IndividualRow = ({
   row,
@@ -10,28 +10,28 @@ export const IndividualRow = ({
   formatMoney,
   rowSubtotal,
 }) => {
-  const showRow = Number(row.toppings || 0) > 0 || row.delivery
+  const showRow = Number(row.toppings || 0) > 0 || row.delivery;
 
-  if (!showRow) return null
+  if (!showRow) return null;
 
   const handleDeliveryChange = (e) => {
-    onRowPatch(sizeId, index, { delivery: e.target.checked })
-  }
+    onRowPatch(sizeId, index, { delivery: e.target.checked });
+  };
 
   return (
-    <div style={{ marginTop: '10px' }}>
-      <div className="size-row" style={{ fontWeight: '600' }}>
+    <div style={{ marginTop: "10px" }}>
+      <div className="size-row" style={{ fontWeight: "600" }}>
         <span>Toppings:</span>
       </div>
 
       <div className="size-row">
         {renderToppingsDisplay(
-          { type: 'row', sizeId, index },
-          String(row.toppings || 0)
+          { type: "row", sizeId, index },
+          String(row.toppings || 0),
         )}
 
-        <span style={{ marginLeft: '16px' }}>
-          Domicilio:{' '}
+        <span style={{ marginLeft: "16px" }}>
+          Domicilio:{" "}
           <input
             type="checkbox"
             checked={row.delivery}
@@ -44,8 +44,8 @@ export const IndividualRow = ({
         <span>{formatMoney(rowSubtotal)}</span>
       </div>
     </div>
-  )
-}
+  );
+};
 
 IndividualRow.propTypes = {
   row: PropTypes.object.isRequired,
@@ -55,4 +55,4 @@ IndividualRow.propTypes = {
   onRowPatch: PropTypes.func.isRequired,
   formatMoney: PropTypes.func.isRequired,
   rowSubtotal: PropTypes.number.isRequired,
-}
+};

@@ -1,5 +1,5 @@
-import React from "react"
-import PropTypes from "prop-types"
+import React from "react";
+import PropTypes from "prop-types";
 
 /**
  * Componente del panel de scanner en el header
@@ -66,17 +66,18 @@ export function ScannerPanel({
         name="scanner"
       />
     </button>
-  )
+  );
 }
 
 ScannerPanel.propTypes = {
   appActive: PropTypes.bool.isRequired,
   scannerFocused: PropTypes.bool.isRequired,
   scannerValue: PropTypes.string.isRequired,
-  scannerInputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
+  scannerInputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object])
+    .isRequired,
   onFocusClick: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   onKeyDown: PropTypes.func.isRequired,
   onBlur: PropTypes.func.isRequired,
   onFocus: PropTypes.func.isRequired,
-}
+};

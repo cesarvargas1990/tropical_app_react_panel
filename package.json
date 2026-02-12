@@ -8,6 +8,9 @@
     "build:docker": "vite build",
     "deploy": "rm -rf ../public/tropical && cp -R dist ../public/tropical",
     "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "coverage": "vitest run --coverage"

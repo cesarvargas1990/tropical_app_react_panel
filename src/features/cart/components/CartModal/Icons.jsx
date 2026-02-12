@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export const EditIcon = () => (
   <svg
@@ -14,7 +14,7 @@ export const EditIcon = () => (
     <path d="M12 20h9" />
     <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
   </svg>
-)
+);
 
 export const TrashIcon = () => (
   <svg
@@ -33,4 +33,4 @@ export const TrashIcon = () => (
     <path d="M14 11v6" />
     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
   </svg>
-)
+);

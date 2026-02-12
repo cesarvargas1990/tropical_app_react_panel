@@ -37,7 +37,7 @@ export function useProductsData(getProductsFn) {
 
         acc[key].precios.push(item);
         return acc;
-      }, {})
+      }, {}),
     );
 
     setProducts(grouped);

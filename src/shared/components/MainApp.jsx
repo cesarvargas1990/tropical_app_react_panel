@@ -1,19 +1,29 @@
-import React, { useEffect } from "react"
+import React, { useEffect } from "react";
 
 // Features imports
-import { ProductCard, getProducts, useProductsData, useProductSizes, useProductsRealtime } from "../../features/products"
-import { CartModal, SizeModal, useCartFlow } from "../../features/cart"
-import { RecentSalesModal, registerSale, useSaleRegister } from "../../features/sales"
+import {
+  ProductCard,
+  getProducts,
+  useProductsData,
+  useProductSizes,
+  useProductsRealtime,
+} from "../../features/products";
+import { CartModal, SizeModal, useCartFlow } from "../../features/cart";
+import {
+  RecentSalesModal,
+  registerSale,
+  useSaleRegister,
+} from "../../features/sales";
 
 // Shared hooks
-import { useBodyLock } from "../hooks/useBodyLock"
-import { useScannerInput } from "../hooks/useScannerInput"
-import { useModalState } from "../hooks/useModalState"
-import { useProductActions } from "../hooks/useProductActions"
-import { useCartActions } from "../hooks/useCartActions"
+import { useBodyLock } from "../hooks/useBodyLock";
+import { useScannerInput } from "../hooks/useScannerInput";
+import { useModalState } from "../hooks/useModalState";
+import { useProductActions } from "../hooks/useProductActions";
+import { useCartActions } from "../hooks/useCartActions";
 
 // Shared components
-import { AppHeader } from "./AppHeader"
+import { AppHeader } from "./AppHeader";
 
 /**
  * Componente principal de la aplicación
@@ -21,15 +31,19 @@ import { AppHeader } from "./AppHeader"
  */
 function MainApp() {
   // Data loading
-  const { products, originalProducts, matrix, loadProducts } = useProductsData(getProducts)
-  
-  useEffect(() => { loadProducts() }, [loadProducts])
+  const { products, originalProducts, matrix, loadProducts } =
+    useProductsData(getProducts);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   // Modal state
-  const { showCart, showRecent, openCart, closeCart, openRecent, closeRecent } = useModalState()
+  const { showCart, showRecent, openCart, closeCart, openRecent, closeRecent } =
+    useModalState();
 
   // Product sizes
-  const { getSizesFor } = useProductSizes(originalProducts)
+  const { getSizesFor } = useProductSizes(originalProducts);
 
   // Cart flow
   const cart = useCartFlow({
@@ -37,44 +51,52 @@ function MainApp() {
     matrix,
     getSizesFor,
     products,
-  })
+  });
 
   // Product actions (scanner + socket)
   const { addProductFromSocket, handleScannerSubmit } = useProductActions({
     originalProducts,
     cart,
     onCartOpen: openCart,
-  })
+  });
 
   // Scanner input management
   const scanner = useScannerInput({
     onSubmit: handleScannerSubmit,
-  })
+  });
 
   // Re-focus scanner on state changes
   useEffect(() => {
-    scanner.forceScannerFocus()
-  }, [scanner, scanner.scannerValue, showCart, showRecent, cart.selectedProduct, scanner.forceScannerFocus])
+    scanner.forceScannerFocus();
+  }, [
+    scanner,
+    scanner.scannerValue,
+    showCart,
+    showRecent,
+    cart.selectedProduct,
+    scanner.forceScannerFocus,
+  ]);
 
   // Real-time updates via WebSocket
   useProductsRealtime({
     onReload: loadProducts,
     onAddProduct: addProductFromSocket,
     onOpenCart: openCart,
-  })
+  });
 
   // Body scroll lock when modals are open
-  useBodyLock(Boolean(cart.selectedProduct || showCart || showRecent))
+  useBodyLock(Boolean(cart.selectedProduct || showCart || showRecent));
 
   // Sales registration
-  const { register } = useSaleRegister({ registerSale })
+  const { register } = useSaleRegister({ registerSale });
 
   // Cart actions
-  const { handleRegisterSale, handleEditItem, cartButtonDisabled } = useCartActions({
-    cart,
-    register,
-    closeCart,
-  })
+  const { handleRegisterSale, handleEditItem, cartButtonDisabled } =
+    useCartActions({
+      cart,
+      register,
+      closeCart,
+    });
 
   return (
     <div className="app">
@@ -120,20 +142,25 @@ function MainApp() {
           sizeState={cart.sizeState}
           onUpdateSize={cart.updateSize}
           onConfirm={() => {
-            cart.confirmSizes()
-            if (cart.editIndex !== null) openCart()
+            cart.confirmSizes();
+            if (cart.editIndex !== null) openCart();
           }}
           onCancel={() => {
-            cart.finishEditCancel()
-            if (cart.editIndex !== null) openCart()
+            cart.finishEditCancel();
+            if (cart.editIndex !== null) openCart();
           }}
-          activeSizeId={cart.editIndex !== null ? cart.sizeState.__activeSizeId : null}
+          activeSizeId={
+            cart.editIndex !== null ? cart.sizeState.__activeSizeId : null
+          }
         />
       )}
 
       {showCart && (
         <CartModal
-          items={cart.groupedItems.map((item) => ({ ...item, onRemove: () => cart.removeGroup(item) }))}
+          items={cart.groupedItems.map((item) => ({
+            ...item,
+            onRemove: () => cart.removeGroup(item),
+          }))}
           onClose={closeCart}
           onClear={cart.clearCart}
           onRegister={handleRegisterSale}
@@ -143,7 +170,7 @@ function MainApp() {
 
       {showRecent && <RecentSalesModal onClose={closeRecent} />}
     </div>
-  )
+  );
 }
 
-export default MainApp
+export default MainApp;

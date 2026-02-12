@@ -1,13 +1,13 @@
-import React from "react"
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
-import { useAuth } from '../../src/features/auth'
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { useAuth } from "../../src/features/auth";
 
 // Importa el componente real
-import App from "../../src/shared/components/App"
+import App from "../../src/shared/components/App";
 
 // Mock de Login y MainApp (para no depender de sus implementaciones)
-vi.mock('../../src/features/auth', () => ({
+vi.mock("../../src/features/auth", () => ({
   useAuth: vi.fn(),
   Login: ({ onLoginSuccess }) => (
     <div>
@@ -15,57 +15,57 @@ vi.mock('../../src/features/auth', () => ({
       <button onClick={onLoginSuccess}>do-login</button>
     </div>
   ),
-}))
+}));
 
-vi.mock('../../src/shared/components/MainApp', () => ({
+vi.mock("../../src/shared/components/MainApp", () => ({
   default: ({ onLogout }) => (
     <div>
       <div data-testid="mainapp">MAINAPP</div>
       <button onClick={onLogout}>do-logout</button>
     </div>
   ),
-}))
+}));
 
 describe("App", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it("renderiza Login si NO está autenticado", () => {
     useAuth.mockReturnValue({
       isAuthenticated: false,
-      logout: vi.fn()
-    })
+      logout: vi.fn(),
+    });
 
-    render(<App />)
+    render(<App />);
 
-    expect(screen.getByTestId("login")).toBeInTheDocument()
-    expect(screen.queryByTestId("mainapp")).toBeNull()
-  })
+    expect(screen.getByTestId("login")).toBeInTheDocument();
+    expect(screen.queryByTestId("mainapp")).toBeNull();
+  });
 
   it("renderiza MainApp si SÍ está autenticado", () => {
     useAuth.mockReturnValue({
       isAuthenticated: true,
-      logout: vi.fn()
-    })
+      logout: vi.fn(),
+    });
 
-    render(<App />)
+    render(<App />);
 
-    expect(screen.getByTestId("mainapp")).toBeInTheDocument()
-    expect(screen.queryByTestId("login")).toBeNull()
-  })
+    expect(screen.getByTestId("mainapp")).toBeInTheDocument();
+    expect(screen.queryByTestId("login")).toBeNull();
+  });
 
   it("logout llama a la función logout del hook", () => {
-    const mockLogout = vi.fn()
+    const mockLogout = vi.fn();
     useAuth.mockReturnValue({
       isAuthenticated: true,
-      logout: mockLogout
-    })
+      logout: mockLogout,
+    });
 
-    render(<App />)
+    render(<App />);
 
-    fireEvent.click(screen.getByText("do-logout"))
+    fireEvent.click(screen.getByText("do-logout"));
 
-    expect(mockLogout).toHaveBeenCalled()
-  })
-})
+    expect(mockLogout).toHaveBeenCalled();
+  });
+});

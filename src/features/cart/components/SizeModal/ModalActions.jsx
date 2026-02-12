@@ -1,5 +1,5 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from "react";
+import PropTypes from "prop-types";
 
 export const ModalActions = ({ onCancel, onConfirm, isConfirmDisabled }) => (
   <div className="modal-actions">
@@ -14,10 +14,10 @@ export const ModalActions = ({ onCancel, onConfirm, isConfirmDisabled }) => (
       Confirmar
     </button>
   </div>
-)
+);
 
 ModalActions.propTypes = {
   onCancel: PropTypes.func.isRequired,
   onConfirm: PropTypes.func.isRequired,
   isConfirmDisabled: PropTypes.bool.isRequired,
-}
+};

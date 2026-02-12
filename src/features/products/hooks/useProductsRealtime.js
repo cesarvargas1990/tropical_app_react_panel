@@ -7,7 +7,11 @@ import "../../../../socket.js";
  * Hook para escuchar eventos en tiempo real de productos
  * Actualiza la lista cuando hay cambios desde el backend
  */
-export function useProductsRealtime({ onReload, onAddProduct, onOpenCart } = {}) {
+export function useProductsRealtime({
+  onReload,
+  onAddProduct,
+  onOpenCart,
+} = {}) {
   const extractProductId = (message) => {
     if (!message) return null;
     const match = String(message).match(/productid\s*(\d+)/i);
@@ -30,7 +34,6 @@ export function useProductsRealtime({ onReload, onAddProduct, onOpenCart } = {})
           onOpenCart();
         }
       }
-
     });
 
     return () => {

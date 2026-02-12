@@ -1,28 +1,28 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { CartItemDetails } from './CartItemDetails'
-import { formatMoney } from './utils'
-import { EditIcon, TrashIcon } from './Icons'
-import { ICON_BUTTON_STYLE } from './constants'
+import React from "react";
+import PropTypes from "prop-types";
+import { CartItemDetails } from "./CartItemDetails";
+import { formatMoney } from "./utils";
+import { EditIcon, TrashIcon } from "./Icons";
+import { ICON_BUTTON_STYLE } from "./constants";
 
 export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
   const handleEdit = () => {
     if (!isRegistering) {
-      onEditItem(item, index)
+      onEditItem(item, index);
     }
-  }
+  };
 
   const handleRemove = () => {
     if (!isRegistering) {
-      item.onRemove(index)
+      item.onRemove(index);
     }
-  }
+  };
 
   const iconButtonStyle = {
     ...ICON_BUTTON_STYLE,
-    cursor: isRegistering ? 'not-allowed' : 'pointer',
+    cursor: isRegistering ? "not-allowed" : "pointer",
     opacity: isRegistering ? 0.6 : 1,
-  }
+  };
 
   return (
     <div className="cart-item">
@@ -33,8 +33,8 @@ export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
         disabled={isRegistering}
         style={{
           ...iconButtonStyle,
-          background: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(255,255,255,0.20)',
+          background: "rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.20)",
         }}
       >
         <EditIcon />
@@ -46,12 +46,12 @@ export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
         disabled={isRegistering}
         type="button"
         style={{
-          cursor: isRegistering ? 'not-allowed' : 'pointer',
+          cursor: isRegistering ? "not-allowed" : "pointer",
           opacity: isRegistering ? 0.7 : 1,
-          background: 'none',
-          border: 'none',
+          background: "none",
+          border: "none",
           padding: 0,
-          textAlign: 'left',
+          textAlign: "left",
           flex: 1,
         }}
       >
@@ -72,15 +72,15 @@ export const CartItem = ({ item, index, isRegistering, onEditItem }) => {
           disabled={isRegistering}
           style={{
             ...iconButtonStyle,
-            background: '#C62828',
+            background: "#C62828",
           }}
         >
           <TrashIcon />
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
 CartItem.propTypes = {
   item: PropTypes.shape({
@@ -92,4 +92,4 @@ CartItem.propTypes = {
   index: PropTypes.number.isRequired,
   isRegistering: PropTypes.bool.isRequired,
   onEditItem: PropTypes.func.isRequired,
-}
+};

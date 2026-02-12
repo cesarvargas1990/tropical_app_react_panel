@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
-import { getLatestSales } from '../services/salesService';
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { getLatestSales } from "../services/salesService";
 
 export function RecentSalesModal({ onClose }) {
-
   const [sales, setSales] = useState([]);
 
   useEffect(() => {
@@ -53,9 +52,9 @@ export function RecentSalesModal({ onClose }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 RecentSalesModal.propTypes = {
   onClose: PropTypes.func.isRequired,
-}
+};

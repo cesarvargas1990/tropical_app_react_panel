@@ -1,5 +1,5 @@
-import React from "react"
-import PropTypes from "prop-types"
+import React from "react";
+import PropTypes from "prop-types";
 
 export function AppHeaderIconButton({ onClick, children, showBadge, badge }) {
   return (
@@ -11,7 +11,7 @@ export function AppHeaderIconButton({ onClick, children, showBadge, badge }) {
       {children}
       {showBadge && badge}
     </button>
-  )
+  );
 }
 
 AppHeaderIconButton.propTypes = {
@@ -19,4 +19,4 @@ AppHeaderIconButton.propTypes = {
   children: PropTypes.node.isRequired,
   showBadge: PropTypes.bool,
   badge: PropTypes.node,
-}
+};

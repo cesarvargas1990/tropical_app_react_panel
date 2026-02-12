@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { IndividualRow } from './IndividualRow'
+import React from "react";
+import PropTypes from "prop-types";
+import { IndividualRow } from "./IndividualRow";
 
 export const IndividualRowsList = ({
   items,
@@ -11,14 +11,14 @@ export const IndividualRowsList = ({
   formatMoney,
   getRowSubtotal,
 }) => {
-  if (!items || items.length === 0) return null
+  if (!items || items.length === 0) return null;
 
   return (
     <>
       {items.map((row, index) => {
-        const rowKey = `row-${sizeId}-${index}`
-        const rowSubtotal = getRowSubtotal(size, row)
-        
+        const rowKey = `row-${sizeId}-${index}`;
+        const rowSubtotal = getRowSubtotal(size, row);
+
         return (
           <IndividualRow
             key={rowKey}
@@ -30,11 +30,11 @@ export const IndividualRowsList = ({
             formatMoney={formatMoney}
             rowSubtotal={rowSubtotal}
           />
-        )
+        );
       })}
     </>
-  )
-}
+  );
+};
 
 IndividualRowsList.propTypes = {
   items: PropTypes.array,
@@ -44,4 +44,4 @@ IndividualRowsList.propTypes = {
   onRowPatch: PropTypes.func.isRequired,
   formatMoney: PropTypes.func.isRequired,
   getRowSubtotal: PropTypes.func.isRequired,
-}
+};
