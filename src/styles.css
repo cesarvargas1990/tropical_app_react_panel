@@ -60,6 +60,20 @@ body {
   font-weight: 700;
 }
 
+.top-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.top-title-version {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
 .top-icons {
   display: flex;
   gap: 8px;

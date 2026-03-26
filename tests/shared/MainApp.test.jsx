@@ -101,6 +101,7 @@ describe("MainApp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     swalFireMock.mockReset();
+    vi.stubEnv("VITE_APP_VERSION", "2.0");
 
     useProductSizes.mockReturnValue({ getSizesFor: vi.fn() });
   });
@@ -130,6 +131,7 @@ describe("MainApp", () => {
 
     expect(screen.getByTestId("product-1")).toBeInTheDocument();
     expect(screen.getByTestId("product-2")).toBeInTheDocument();
+    expect(screen.getByText("v 2.0")).toBeInTheDocument();
 
     const continueButton = screen.getByRole("button", {
       name: /Continuar pedido/i,
