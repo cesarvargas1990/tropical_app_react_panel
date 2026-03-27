@@ -1,9 +1,22 @@
 import { useCallback, useState } from "react";
 
+function resolveProductName(item) {
+  return (
+    item.productName ??
+    item.product_name ??
+    item.nombre_producto ??
+    item.producto_nombre ??
+    item.nombre ??
+    item.name ??
+    item.sabor ??
+    ""
+  );
+}
+
 /**
  * Hook para encapsular la carga y transformación de productos
  * - originalProducts: data plana del backend
- * - products: agrupado por machineId
+ * - products: agrupado por sabor_id + carac_id
  * - matrix: mapa {`${sabor_id}-${carac_id}-${tamano_id}`: {valor, delivery}}
  */
 export function useProductsData(getProductsFn) {
@@ -16,10 +29,10 @@ export function useProductsData(getProductsFn) {
 
     setOriginalProducts(data);
 
-    // Agrupación por machineId
+    // Agrupación por producto base (sabor + característica)
     const grouped = Object.values(
       data.reduce((acc, item) => {
-        const key = `${item.machineId}`;
+        const key = `${item.sabor_id}-${item.carac_id}`;
 
         if (!acc[key]) {
           acc[key] = {
@@ -28,7 +41,7 @@ export function useProductsData(getProductsFn) {
             machineName: item.machineName,
             sabor_id: item.sabor_id,
             carac_id: item.carac_id,
-            name: item.sabor,
+            name: resolveProductName(item),
             imageUrl: item.imageUrl,
             caracteristica: item.caracteristica,
             precios: [],

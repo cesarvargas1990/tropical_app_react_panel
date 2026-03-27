@@ -243,11 +243,12 @@ body {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 2px;
+  color: #f8fafc;
 }
 
 .product-description {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #e2e8f0;
 }
 
 .continue-wrapper {
