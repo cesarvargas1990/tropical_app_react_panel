@@ -57,6 +57,17 @@ describe("useCartFlow", () => {
     expect(result.current.sizeState).toEqual({});
   });
 
+  it("resuelve tamaños si hay producto seleccionado aunque el estado local de sizes siga vacío", () => {
+    const { result } = setup();
+
+    act(() => {
+      result.current.setSelectedProduct(mockProduct);
+    });
+
+    expect(result.current.selectedProduct).toEqual(mockProduct);
+    expect(result.current.sizes).toEqual([{ id: 1 }]);
+  });
+
   // ================================
   // UPDATE SIZE
   // ================================

@@ -60,6 +60,12 @@ export function useCartFlow({
     [cartItems],
   );
 
+  const resolvedSizes = useMemo(() => {
+    if (!selectedProduct) return sizes;
+    if (sizes.length > 0) return sizes;
+    return getSizesFor(selectedProduct);
+  }, [getSizesFor, selectedProduct, sizes]);
+
   const groupKey = useCallback((item) => {
     return JSON.stringify({
       productName: item.productName,
@@ -106,7 +112,7 @@ export function useCartFlow({
 
   const confirmSizes = useCallback(() => {
     const newItems = buildCartItems({
-      sizes,
+      sizes: resolvedSizes,
       sizeState,
       selectedProduct,
       originalProducts,
@@ -139,7 +145,7 @@ export function useCartFlow({
     setSelectedProduct(null);
     setSizeState({});
   }, [
-    sizes,
+    resolvedSizes,
     sizeState,
     selectedProduct,
     originalProducts,
@@ -228,7 +234,7 @@ export function useCartFlow({
 
   return {
     // state
-    sizes,
+    sizes: resolvedSizes,
     selectedProduct,
     sizeState,
     cartItems,
