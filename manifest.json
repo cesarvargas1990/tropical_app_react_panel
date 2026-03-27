@@ -1,6 +1,6 @@
 {
   "name": "Tropicalapp",
-  "short_name": "Tropical App",
+  "short_name": "Insomnia App",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

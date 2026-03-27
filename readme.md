@@ -1,4 +1,4 @@
-# 🍹 Panel de Ventas Tropical APP
+# 🍹 Panel de Ventas Insomnia APP
 
 Panel de administración de ventas desarrollado con **React + Vite**, optimizado para punto de venta con escáner, gestión de carrito, cálculo de tamaños y modal de toppings.
 
