@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // Features imports
 import {
@@ -24,6 +24,15 @@ import { useCartActions } from "../hooks/useCartActions";
 
 // Shared components
 import { AppHeader } from "./AppHeader";
+import { ProductSearchKeyboard } from "./ProductSearchKeyboard";
+
+function normalizeProductText(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
 
 /**
  * Componente principal de la aplicación
@@ -33,6 +42,8 @@ function MainApp() {
   // Data loading
   const { products, originalProducts, matrix, loadProducts } =
     useProductsData(getProducts);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -98,6 +109,18 @@ function MainApp() {
       closeCart,
     });
 
+  const filteredProducts = useMemo(() => {
+    const normalizedQuery = normalizeProductText(searchQuery);
+    if (!normalizedQuery) return products;
+
+    return products.filter((product) => {
+      const haystack = normalizeProductText(
+        `${product.name} ${product.caracteristica}`,
+      );
+      return haystack.includes(normalizedQuery);
+    });
+  }, [products, searchQuery]);
+
   return (
     <div className="app">
       <AppHeader
@@ -115,14 +138,46 @@ function MainApp() {
         cartCount={cart.cartCount}
         onRecentClick={openRecent}
         onCartClick={openCart}
+        onSearchClick={() => setShowSearchKeyboard(true)}
       />
 
       <main className="main">
+        <div className="product-search-bar">
+          <button
+            type="button"
+            className="product-search-display"
+            onClick={() => setShowSearchKeyboard(true)}
+            aria-label="Buscar producto"
+          >
+            <span className="product-search-label">Buscar producto</span>
+            <span className="product-search-value">
+              {searchQuery ||
+                "Toca para buscar un producto con el teclado en pantalla"}
+            </span>
+          </button>
+
+          {searchQuery ? (
+            <button
+              type="button"
+              className="btn-secondary product-search-clear"
+              onClick={() => setSearchQuery("")}
+            >
+              Limpiar
+            </button>
+          ) : null}
+        </div>
+
         <div className="product-panel">
-          {products.map((p) => (
+          {filteredProducts.map((p) => (
             <ProductCard key={p.id} product={p} onSelect={cart.selectProduct} />
           ))}
         </div>
+
+        {filteredProducts.length === 0 ? (
+          <div className="product-search-empty">
+            No hay productos que coincidan con &quot;{searchQuery}&quot;.
+          </div>
+        ) : null}
 
         <div className="continue-wrapper">
           <button
@@ -169,6 +224,15 @@ function MainApp() {
       )}
 
       {showRecent && <RecentSalesModal onClose={closeRecent} />}
+
+      <ProductSearchKeyboard
+        value={searchQuery}
+        open={showSearchKeyboard}
+        onClose={() => setShowSearchKeyboard(false)}
+        onChange={setSearchQuery}
+        onBackspace={() => setSearchQuery((prev) => prev.slice(0, -1))}
+        onClear={() => setSearchQuery("")}
+      />
     </div>
   );
 }

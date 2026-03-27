@@ -12,6 +12,7 @@ export function AppHeader({
   cartCount,
   onRecentClick,
   onCartClick,
+  onSearchClick,
 }) {
   return (
     <header className="top-bar">
@@ -23,6 +24,7 @@ export function AppHeader({
           cartCount={cartCount}
           onRecentClick={onRecentClick}
           onCartClick={onCartClick}
+          onSearchClick={onSearchClick}
         />
       </div>
     </header>
@@ -34,4 +36,5 @@ AppHeader.propTypes = {
   cartCount: PropTypes.number.isRequired,
   onRecentClick: PropTypes.func.isRequired,
   onCartClick: PropTypes.func.isRequired,
+  onSearchClick: PropTypes.func.isRequired,
 };

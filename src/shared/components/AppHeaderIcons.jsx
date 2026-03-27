@@ -1,11 +1,20 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { AppHeaderIconButton } from "./AppHeaderIconButton";
-import { ClockIcon, CartIcon } from "./Icons";
+import { ClockIcon, CartIcon, SearchIcon } from "./Icons";
 
-export function AppHeaderIcons({ cartCount, onRecentClick, onCartClick }) {
+export function AppHeaderIcons({
+  cartCount,
+  onRecentClick,
+  onCartClick,
+  onSearchClick,
+}) {
   return (
     <div className="top-icons">
+      <AppHeaderIconButton onClick={onSearchClick}>
+        <SearchIcon />
+      </AppHeaderIconButton>
+
       <AppHeaderIconButton onClick={onRecentClick}>
         <ClockIcon />
       </AppHeaderIconButton>
@@ -27,4 +36,5 @@ AppHeaderIcons.propTypes = {
   cartCount: PropTypes.number.isRequired,
   onRecentClick: PropTypes.func.isRequired,
   onCartClick: PropTypes.func.isRequired,
+  onSearchClick: PropTypes.func.isRequired,
 };

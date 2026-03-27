@@ -197,6 +197,55 @@ body {
   place-items: center;
 }
 
+.product-search-bar {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto 14px;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.product-search-display {
+  flex: 1;
+  border: 1px solid #223049;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0f172a, #09111f);
+  color: #f8fafc;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-search-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.product-search-value {
+  font-size: 16px;
+  color: #f8fafc;
+}
+
+.product-search-clear {
+  min-width: 118px;
+}
+
+.product-search-empty {
+  width: 100%;
+  max-width: 1800px;
+  margin: 4px auto 0;
+  text-align: center;
+  color: #cbd5e1;
+  font-size: 15px;
+}
+
 .product-card {
   width: 100%;
   max-width: 260px;
@@ -978,6 +1027,60 @@ body {
   display: flex;
   justify-content: center;
   margin-top: 14px;
+}
+
+.search-keypad-modal {
+  width: 760px;
+  max-width: 94vw;
+}
+
+.search-keypad-display {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.search-keyboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-keyboard-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.search-key-btn {
+  min-width: 58px;
+  padding: 12px 14px;
+}
+
+.search-key-btn-wide {
+  min-width: 120px;
+}
+
+.search-key-btn-space {
+  min-width: 240px;
+}
+
+@media (max-width: 768px) {
+  .product-search-bar {
+    flex-direction: column;
+  }
+
+  .product-search-clear {
+    width: 100%;
+  }
+
+  .search-key-btn-space {
+    min-width: 180px;
+  }
 }
 
 /* ================================

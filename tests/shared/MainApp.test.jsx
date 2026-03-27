@@ -132,6 +132,9 @@ describe("MainApp", () => {
     expect(screen.getByTestId("product-1")).toBeInTheDocument();
     expect(screen.getByTestId("product-2")).toBeInTheDocument();
     expect(screen.getByText("v 2.0")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /buscar producto/i }),
+    ).toBeInTheDocument();
 
     const continueButton = screen.getByRole("button", {
       name: /Continuar pedido/i,
@@ -218,5 +221,27 @@ describe("MainApp", () => {
 
     expect(clearCart).not.toHaveBeenCalled();
     expect(screen.getByTestId("cart-modal")).toBeInTheDocument();
+  });
+
+  it("filters visible products using the on-screen search keyboard", () => {
+    const loadProducts = vi.fn();
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: baseProducts,
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation(() => {});
+    useCartFlow.mockReturnValue(createCartState());
+    useSaleRegister.mockReturnValue({ register: vi.fn() });
+
+    render(<MainApp />);
+
+    fireEvent.click(screen.getByRole("button", { name: /buscar producto/i }));
+    fireEvent.click(screen.getByRole("button", { name: "L" }));
+    fireEvent.click(screen.getByRole("button", { name: "U" }));
+
+    expect(screen.getByTestId("product-2")).toBeInTheDocument();
+    expect(screen.queryByTestId("product-1")).toBeNull();
   });
 });
