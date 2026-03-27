@@ -10,6 +10,7 @@ const KEYBOARD_ROWS = [
 export function ProductSearchKeyboard({
   value,
   open,
+  resultCount,
   onClose,
   onChange,
   onBackspace,
@@ -94,6 +95,11 @@ export function ProductSearchKeyboard({
             Aceptar
           </button>
         </div>
+
+        <div className="search-keypad-results">
+          {resultCount} producto{resultCount === 1 ? "" : "s"} encontrado
+          {resultCount === 1 ? "" : "s"}
+        </div>
       </div>
     </div>
   );
@@ -102,6 +108,7 @@ export function ProductSearchKeyboard({
 ProductSearchKeyboard.propTypes = {
   value: PropTypes.string.isRequired,
   open: PropTypes.bool.isRequired,
+  resultCount: PropTypes.number.isRequired,
   onClose: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   onBackspace: PropTypes.func.isRequired,

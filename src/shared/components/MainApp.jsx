@@ -228,6 +228,7 @@ function MainApp() {
       <ProductSearchKeyboard
         value={searchQuery}
         open={showSearchKeyboard}
+        resultCount={filteredProducts.length}
         onClose={() => setShowSearchKeyboard(false)}
         onChange={setSearchQuery}
         onBackspace={() => setSearchQuery((prev) => prev.slice(0, -1))}

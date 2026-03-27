@@ -238,9 +238,11 @@ describe("MainApp", () => {
     render(<MainApp />);
 
     fireEvent.click(screen.getByRole("button", { name: /buscar producto/i }));
+    expect(screen.getByText("2 productos encontrados")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "L" }));
     fireEvent.click(screen.getByRole("button", { name: "U" }));
 
+    expect(screen.getByText("1 producto encontrado")).toBeInTheDocument();
     expect(screen.getByTestId("product-2")).toBeInTheDocument();
     expect(screen.queryByTestId("product-1")).toBeNull();
   });

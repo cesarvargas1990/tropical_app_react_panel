@@ -1069,6 +1069,13 @@ body {
   min-width: 240px;
 }
 
+.search-keypad-results {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: #cbd5e1;
+}
+
 @media (max-width: 768px) {
   .product-search-bar {
     flex-direction: column;
