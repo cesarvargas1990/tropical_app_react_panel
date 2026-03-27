@@ -97,6 +97,18 @@ describe("SizeModal", () => {
     expect(screen.getByText(/Grande/)).toBeInTheDocument();
   });
 
+  it("tolera activeSizeId con tipo distinto sin dejar la modal vacía", () => {
+    const sizes = [
+      { id: 1, nombre: "Pequeño", basePrice: 1000, delivery: 200 },
+      { id: 2, nombre: "Grande", basePrice: 2000, delivery: 400 },
+    ];
+
+    renderModal({ sizes, activeSizeId: "2" });
+
+    expect(screen.queryByText(/Pequeño/)).toBeNull();
+    expect(screen.getByText(/Grande/)).toBeInTheDocument();
+  });
+
   it("updates toppings and delivery through global controls", () => {
     const initialState = {
       [baseSize.id]: {

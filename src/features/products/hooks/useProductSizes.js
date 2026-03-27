@@ -8,13 +8,15 @@ export function useProductSizes(originalProducts) {
     (product) => {
       const filtered = originalProducts.filter(
         (p) =>
-          p.sabor_id === product.sabor_id && p.carac_id === product.carac_id,
+          String(p.sabor_id) === String(product.sabor_id) &&
+          String(p.carac_id) === String(product.carac_id),
       );
 
       const unique = Object.values(
         filtered.reduce((acc, p) => {
-          if (!acc[p.tamano_id]) {
-            acc[p.tamano_id] = {
+          const sizeId = String(p.tamano_id);
+          if (!acc[sizeId]) {
+            acc[sizeId] = {
               id: p.tamano_id,
               nombre: p.tamano,
               basePrice: Number(p.valor),

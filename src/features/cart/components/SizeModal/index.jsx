@@ -36,10 +36,11 @@ export function SizeModal({
   } = useKeypad({ sizeState, onUpdateSize });
 
   // Datos calculados con memoización
-  const visibleSizes = useMemo(
-    () => (activeSizeId ? sizes.filter((s) => s.id === activeSizeId) : sizes),
-    [activeSizeId, sizes],
-  );
+  const visibleSizes = useMemo(() => {
+    if (!activeSizeId) return sizes;
+    const filtered = sizes.filter((s) => String(s.id) === String(activeSizeId));
+    return filtered.length > 0 ? filtered : sizes;
+  }, [activeSizeId, sizes]);
 
   const totalGeneral = useMemo(
     () => getTotalGeneral(visibleSizes, sizeState),

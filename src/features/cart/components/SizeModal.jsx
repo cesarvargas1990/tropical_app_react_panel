@@ -33,7 +33,12 @@ export function SizeModal({
 
   // Datos calculados
   const visibleSizes = activeSizeId
-    ? sizes.filter((s) => s.id === activeSizeId)
+    ? (() => {
+        const filtered = sizes.filter(
+          (s) => String(s.id) === String(activeSizeId),
+        );
+        return filtered.length > 0 ? filtered : sizes;
+      })()
     : sizes;
 
   const totalGeneral = getTotalGeneral(visibleSizes, sizeState);

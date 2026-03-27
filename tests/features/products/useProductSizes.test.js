@@ -99,4 +99,14 @@ describe("useProductSizes", () => {
 
     expect(sizes).toEqual([]);
   });
+
+  it("encuentra tamaños aunque producto y catálogo usen tipos distintos en los ids", () => {
+    const { result } = renderHook(() => useProductSizes(originalProducts));
+
+    const product = { sabor_id: "10", carac_id: "20" };
+    const sizes = result.current.getSizesFor(product);
+
+    expect(sizes).toHaveLength(2);
+    expect(sizes.map((s) => s.id).sort((a, b) => a - b)).toEqual([1, 2]);
+  });
 });
