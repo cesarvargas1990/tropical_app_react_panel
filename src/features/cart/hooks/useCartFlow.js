@@ -95,13 +95,10 @@ export function useCartFlow({
     return Array.from(map.values());
   }, [cartItems, groupKey]);
 
-  const selectProduct = useCallback(
-    (product) => {
-      setSelectedProduct(product);
-      setSizeState({});
-    },
-    [],
-  );
+  const selectProduct = useCallback((product) => {
+    setSelectedProduct(product);
+    setSizeState({});
+  }, []);
 
   const updateSize = useCallback((id, data) => {
     setSizeState((prev) => ({ ...prev, [id]: data }));
