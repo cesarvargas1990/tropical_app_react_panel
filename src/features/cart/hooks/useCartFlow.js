@@ -14,7 +14,6 @@ export function useCartFlow({
   getSizesFor,
   products,
 }) {
-  const [sizes, setSizes] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sizeState, setSizeState] = useState({});
   const [cartItems, setCartItems] = useState([]);
@@ -61,10 +60,9 @@ export function useCartFlow({
   );
 
   const resolvedSizes = useMemo(() => {
-    if (!selectedProduct) return sizes;
-    if (sizes.length > 0) return sizes;
+    if (!selectedProduct) return [];
     return getSizesFor(selectedProduct);
-  }, [getSizesFor, selectedProduct, sizes]);
+  }, [getSizesFor, selectedProduct, originalProducts]);
 
   const groupKey = useCallback((item) => {
     return JSON.stringify({
@@ -100,10 +98,9 @@ export function useCartFlow({
   const selectProduct = useCallback(
     (product) => {
       setSelectedProduct(product);
-      setSizes(getSizesFor(product));
       setSizeState({});
     },
-    [getSizesFor],
+    [],
   );
 
   const updateSize = useCallback((id, data) => {
@@ -182,13 +179,14 @@ export function useCartFlow({
       setEditSourceIndices(
         indices.filter((i) => i !== null && i !== undefined),
       );
-      setSizes(getSizesFor(product));
       setSizeState(buildEditSizeState(item));
 
       return { ok: true };
     },
-    [getSizesFor, products],
+    [products],
   );
+
+  const setSizes = useCallback(() => {}, []);
 
   const finishEditCancel = useCallback(() => {
     setSelectedProduct(null);
