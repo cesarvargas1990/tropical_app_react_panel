@@ -94,8 +94,32 @@ body {
   box-shadow: 0 0 0 1px #1f2937;
 }
 
+.icon-button > svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  flex: 0 0 22px;
+}
+
 .icon-button:hover {
   background: #1f2937;
+}
+
+/* iPad/iOS tablet fallback: force stable SVG sizing inside header icon buttons */
+@supports (-webkit-touch-callout: none) {
+  @media (min-width: 768px) and (max-width: 1366px) and (pointer: coarse) {
+    .icon-button {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 0 0 auto;
+    }
+
+    .icon-button svg {
+      transform: translateZ(0);
+    }
+  }
 }
 
 .main {
