@@ -4,9 +4,14 @@ import { useScannerInput } from "../../src/shared/hooks/useScannerInput";
 
 describe("useScannerInput", () => {
   let onSubmitMock;
+  const defaultUserAgent = navigator.userAgent;
 
   beforeEach(() => {
     onSubmitMock = vi.fn();
+    Object.defineProperty(globalThis.navigator, "userAgent", {
+      value: defaultUserAgent,
+      configurable: true,
+    });
   });
 
   afterEach(() => {
@@ -122,5 +127,72 @@ describe("useScannerInput", () => {
     });
 
     expect(result.current.scannerFocused).toBe(false);
+  });
+
+  it("activa preventSoftKeyboard en Android", () => {
+    Object.defineProperty(globalThis.navigator, "userAgent", {
+      value: "Mozilla/5.0 (Linux; Android 14)",
+      configurable: true,
+    });
+
+    const { result } = renderHook(() =>
+      useScannerInput({ onSubmit: onSubmitMock }),
+    );
+
+    expect(result.current.preventSoftKeyboard).toBe(true);
+  });
+
+  it("captura caracteres por keydown en modo Android y envía con Enter", () => {
+    Object.defineProperty(globalThis.navigator, "userAgent", {
+      value: "Mozilla/5.0 (Linux; Android 14)",
+      configurable: true,
+    });
+
+    const { result } = renderHook(() =>
+      useScannerInput({ onSubmit: onSubmitMock }),
+    );
+
+    act(() => {
+      result.current.handleScannerKeyDown({
+        key: "1",
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        preventDefault: vi.fn(),
+        currentTarget: { value: "" },
+      });
+      result.current.handleScannerKeyDown({
+        key: "2",
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        preventDefault: vi.fn(),
+        currentTarget: { value: "" },
+      });
+      result.current.handleScannerKeyDown({
+        key: "3",
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        preventDefault: vi.fn(),
+        currentTarget: { value: "" },
+      });
+    });
+
+    expect(result.current.scannerValue).toBe("123");
+
+    const enterEvent = {
+      key: "Enter",
+      currentTarget: { value: "" },
+      preventDefault: vi.fn(),
+    };
+
+    act(() => {
+      result.current.handleScannerKeyDown(enterEvent);
+    });
+
+    expect(enterEvent.preventDefault).toHaveBeenCalled();
+    expect(onSubmitMock).toHaveBeenCalledWith("123");
+    expect(result.current.scannerValue).toBe("");
   });
 });

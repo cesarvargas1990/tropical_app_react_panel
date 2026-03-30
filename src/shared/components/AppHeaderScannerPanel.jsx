@@ -34,12 +34,13 @@ export function AppHeaderScannerPanel({ scannerProps }) {
       <input
         ref={scannerProps.scannerInputRef}
         className="input scanner-input"
-        type="tel"
+        type="text"
         value={scannerProps.scannerValue}
         onChange={scannerProps.onChange}
         onKeyDown={scannerProps.onKeyDown}
         onBlur={scannerProps.onBlur}
         onFocus={scannerProps.onFocus}
+        readOnly={scannerProps.preventSoftKeyboard}
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
@@ -57,6 +58,7 @@ AppHeaderScannerPanel.propTypes = {
   scannerProps: PropTypes.shape({
     appActive: PropTypes.bool.isRequired,
     scannerFocused: PropTypes.bool.isRequired,
+    preventSoftKeyboard: PropTypes.bool,
     onFocusClick: PropTypes.func.isRequired,
     scannerInputRef: PropTypes.oneOfType([
       PropTypes.func,
