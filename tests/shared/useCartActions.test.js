@@ -27,11 +27,12 @@ describe("useCartActions", () => {
       }),
     );
 
-    await result.current.handleRegisterSale();
+    const ok = await result.current.handleRegisterSale();
 
     expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
     expect(mockCart.clearCart).toHaveBeenCalled();
     expect(mockCloseCart).toHaveBeenCalled();
+    expect(ok).toBe(true);
   });
 
   it("handleRegisterSale muestra error si falla", async () => {
@@ -54,7 +55,7 @@ describe("useCartActions", () => {
       }),
     );
 
-    await result.current.handleRegisterSale();
+    const ok = await result.current.handleRegisterSale();
 
     expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
     expect(mockCart.clearCart).not.toHaveBeenCalled();
@@ -64,6 +65,7 @@ describe("useCartActions", () => {
       text: "Error de red",
       icon: "error",
     });
+    expect(ok).toBe(false);
   });
 
   it("handleEditItem inicia edición y cierra carrito", () => {

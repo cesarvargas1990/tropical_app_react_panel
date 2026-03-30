@@ -102,8 +102,37 @@ describe("MainApp", () => {
     vi.clearAllMocks();
     swalFireMock.mockReset();
     vi.stubEnv("VITE_APP_VERSION", "2.0");
+    globalThis.scrollTo = vi.fn();
 
     useProductSizes.mockReturnValue({ getSizesFor: vi.fn() });
+  });
+
+  it("scrolls to top when confirming product sizes", () => {
+    const loadProducts = vi.fn();
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: baseProducts,
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation(() => {});
+    useSaleRegister.mockReturnValue({ register: vi.fn() });
+
+    const cartState = createCartState({
+      selectedProduct: baseProducts[0],
+      sizes: [{ id: 1, name: "Mediano" }],
+    });
+    useCartFlow.mockReturnValue(cartState);
+
+    render(<MainApp />);
+
+    fireEvent.click(screen.getByText("confirm-size"));
+
+    expect(cartState.confirmSizes).toHaveBeenCalledTimes(1);
+    expect(globalThis.scrollTo).toHaveBeenCalledWith({
+      top: 0,
+      behavior: "auto",
+    });
   });
 
   it("loads products, wires realtime updates, and disables cart button when empty", () => {
@@ -169,6 +198,7 @@ describe("MainApp", () => {
     fireEvent.click(screen.getByRole("button", { name: /Continuar pedido/i }));
     expect(screen.getByTestId("cart-modal")).toBeInTheDocument();
 
+    vi.clearAllMocks();
     fireEvent.click(screen.getByText("trigger-register"));
 
     await waitFor(() => {
@@ -179,6 +209,11 @@ describe("MainApp", () => {
 
     await waitFor(() => {
       expect(screen.queryByTestId("cart-modal")).toBeNull();
+    });
+
+    expect(globalThis.scrollTo).toHaveBeenCalledWith({
+      top: 0,
+      behavior: "auto",
     });
   });
 

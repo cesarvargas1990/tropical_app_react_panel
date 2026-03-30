@@ -9,6 +9,7 @@ export function useCartActions({ cart, register, closeCart }) {
       await register(cart.groupedItems);
       cart.clearCart();
       closeCart();
+      return true;
     } catch (error) {
       const Swal = (await import("sweetalert2")).default;
       Swal.fire({
@@ -16,6 +17,7 @@ export function useCartActions({ cart, register, closeCart }) {
         text: error.message,
         icon: "error",
       });
+      return false;
     }
   }, [cart, register, closeCart]);
 

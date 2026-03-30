@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 // Features imports
 import {
@@ -121,6 +121,15 @@ function MainApp() {
     });
   }, [products, searchQuery]);
 
+  const scrollToTop = useCallback(() => {
+    globalThis.scrollTo?.({ top: 0, behavior: "auto" });
+  }, []);
+
+  const handleRegisterAndScroll = useCallback(async () => {
+    const ok = await handleRegisterSale();
+    if (ok) scrollToTop();
+  }, [handleRegisterSale, scrollToTop]);
+
   return (
     <div className="app">
       <AppHeader
@@ -198,6 +207,7 @@ function MainApp() {
           onUpdateSize={cart.updateSize}
           onConfirm={() => {
             cart.confirmSizes();
+            scrollToTop();
             if (cart.editIndex !== null) openCart();
           }}
           onCancel={() => {
@@ -218,7 +228,7 @@ function MainApp() {
           }))}
           onClose={closeCart}
           onClear={cart.clearCart}
-          onRegister={handleRegisterSale}
+          onRegister={handleRegisterAndScroll}
           onEditItem={handleEditItem}
         />
       )}
