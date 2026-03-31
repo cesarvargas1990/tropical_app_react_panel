@@ -39,7 +39,7 @@ export function SizeCard({
 
   return (
     <div className="size-card">
-      <SizeCardTitle sizeName={size.nombre} />
+      <SizeCardTitle sizeName={size.nombre} unitPrice={size.basePrice} />
 
       <QuantityControls
         quantity={quantity}
@@ -74,6 +74,7 @@ SizeCard.propTypes = {
   size: PropTypes.shape({
     id: PropTypes.number.isRequired,
     nombre: PropTypes.string.isRequired,
+    basePrice: PropTypes.number.isRequired,
   }).isRequired,
   sizeState: PropTypes.object.isRequired,
   onQuantityChange: PropTypes.func.isRequired,
