@@ -1,6 +1,12 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 
 import MainApp from "../../src/shared/components/MainApp";
 import { useProductsData } from "../../src/features/products/hooks/useProductsData";
