@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("deviceId service", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
     window.localStorage.clear();
@@ -44,17 +45,23 @@ describe("deviceId service", () => {
   });
 
   it("falls back to a generated uuid when crypto.randomUUID is unavailable", async () => {
+    const getRandomValues = vi.fn((buffer) => {
+      buffer.set([
+        0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x11, 0x22, 0x33, 0x44,
+        0x55, 0x66, 0x77, 0x88,
+      ]);
+      return buffer;
+    });
+
     Object.defineProperty(globalThis, "crypto", {
-      value: {},
+      value: { getRandomValues },
       configurable: true,
     });
-    vi.spyOn(Math, "random").mockReturnValue(0.25);
 
     const { createMutationId } =
       await import("../../src/shared/services/deviceId");
 
-    expect(createMutationId()).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
-    );
+    expect(createMutationId()).toBe("12345678-9abc-4ef0-9122-334455667788");
+    expect(getRandomValues).toHaveBeenCalledOnce();
   });
 });
