@@ -166,7 +166,18 @@ export function useCartFlow({
   }, [syncCart]);
 
   useEffect(() => {
-    setCartItems((prev) => prev.map(enrichCartItem));
+    setCartItems((prev) => {
+      if (prev.length === 0) {
+        return prev;
+      }
+
+      const next = prev.map(enrichCartItem);
+      const changed = next.some(
+        (item, index) => item.size !== prev[index]?.size,
+      );
+
+      return changed ? next : prev;
+    });
   }, [enrichCartItem]);
 
   const resolvedSizes = useMemo(() => {

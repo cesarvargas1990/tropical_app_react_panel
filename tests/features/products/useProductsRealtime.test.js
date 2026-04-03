@@ -7,6 +7,8 @@ describe("useProductsRealtime", () => {
   let stopListeningMock;
   let channelMock;
   let onReload;
+  let onLegacyProductEvent;
+  let onCartUpdated;
 
   beforeEach(() => {
     listenMock = vi.fn();
@@ -23,6 +25,8 @@ describe("useProductsRealtime", () => {
     };
 
     onReload = vi.fn();
+    onLegacyProductEvent = vi.fn();
+    onCartUpdated = vi.fn();
   });
 
   afterEach(() => {
@@ -30,21 +34,43 @@ describe("useProductsRealtime", () => {
   });
 
   it("se conecta al canal y escucha el evento", () => {
-    renderHook(() => useProductsRealtime({ onReload }));
+    renderHook(() =>
+      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+    );
 
     expect(window.Echo.channel).toHaveBeenCalledWith("new-public-channel");
     expect(listenMock).toHaveBeenCalledWith("NewEvent", expect.any(Function));
+    expect(listenMock).toHaveBeenCalledWith(
+      "CartUpdated",
+      expect.any(Function),
+    );
   });
 
-  it("ejecuta onReload cuando llega el evento", () => {
-    renderHook(() => useProductsRealtime({ onReload }));
+  it("ejecuta onReload y delega el evento legacy cuando llega NewEvent", () => {
+    renderHook(() =>
+      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+    );
 
-    // obtener callback pasado a listen
     const callback = listenMock.mock.calls[0][1];
 
-    callback({ foo: "bar" });
+    callback({ message: "productid 77" });
 
     expect(onReload).toHaveBeenCalledTimes(1);
+    expect(onLegacyProductEvent).toHaveBeenCalledWith({
+      productId: 77,
+      rawEvent: { message: "productid 77" },
+    });
+  });
+
+  it("delegates CartUpdated events", () => {
+    renderHook(() =>
+      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+    );
+
+    const callback = listenMock.mock.calls[1][1];
+    callback({ version: 2 });
+
+    expect(onCartUpdated).toHaveBeenCalledWith({ version: 2 });
   });
 
   it("no rompe si onReload es undefined", () => {
@@ -56,10 +82,13 @@ describe("useProductsRealtime", () => {
   });
 
   it("limpia el listener al desmontar", () => {
-    const { unmount } = renderHook(() => useProductsRealtime(onReload));
+    const { unmount } = renderHook(() =>
+      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+    );
 
     unmount();
 
     expect(stopListeningMock).toHaveBeenCalledWith("NewEvent");
+    expect(stopListeningMock).toHaveBeenCalledWith("CartUpdated");
   });
 });

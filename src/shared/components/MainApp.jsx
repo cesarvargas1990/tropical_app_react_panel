@@ -230,7 +230,7 @@ function MainApp() {
           onUpdateSize={cart.updateSize}
           onConfirm={() => {
             const wasEditing = cart.editIndex !== null;
-            void cart.confirmSizes().then((ok) => {
+            void Promise.resolve(cart.confirmSizes()).then((ok) => {
               if (!ok) return;
               scrollToTop();
               if (wasEditing) openCart();

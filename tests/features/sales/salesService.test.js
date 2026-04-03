@@ -5,6 +5,11 @@ import {
 } from "../../../src/features/sales/services/salesService";
 import api from "../../../src/shared/services/api";
 
+vi.mock("../../../src/shared/services/deviceId", () => ({
+  getDeviceId: vi.fn(() => "tablet-test"),
+  createMutationId: vi.fn(() => "mutation-test"),
+}));
+
 // 🔒 Mock del api (axios instance)
 vi.mock("../../../src/shared/services/api", () => ({
   default: {
@@ -63,7 +68,10 @@ describe("salesService", () => {
       const result = await registerSale(cartItems);
 
       expect(api.post).toHaveBeenCalledOnce();
-      expect(api.post).toHaveBeenCalledWith("/api/sales", cartItems);
+      expect(api.post).toHaveBeenCalledWith("/api/cart/checkout", {
+        device_id: "tablet-test",
+        mutation_uuid: "mutation-test",
+      });
       expect(result).toEqual(fakeResponse);
     });
 

@@ -1,16 +1,16 @@
 import { describe, it, expect, vi } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { useProductActions } from "../../src/shared/hooks/useProductActions";
 
 describe("useProductActions", () => {
-  it("encuentra y agrega un producto por productMatrixId", () => {
+  it("encuentra y agrega un producto por productMatrixId", async () => {
     const originalProducts = [
       { id: 1, productMatrixId: "123", name: "Producto A" },
       { id: 2, productMatrixId: "456", name: "Producto B" },
     ];
 
     const mockCart = {
-      addItemDirect: vi.fn(),
+      addItemDirect: vi.fn().mockResolvedValue(true),
     };
 
     const onCartOpen = vi.fn();
@@ -19,7 +19,10 @@ describe("useProductActions", () => {
       useProductActions({ originalProducts, cart: mockCart, onCartOpen }),
     );
 
-    const success = result.current.addProductFromSocket("123");
+    let success;
+    await act(async () => {
+      success = await result.current.addProductFromSocket("123");
+    });
 
     expect(success).toBe(true);
     expect(mockCart.addItemDirect).toHaveBeenCalledWith(originalProducts[0], {
@@ -27,14 +30,14 @@ describe("useProductActions", () => {
     });
   });
 
-  it("encuentra y agrega un producto por id", () => {
+  it("encuentra y agrega un producto por id", async () => {
     const originalProducts = [
       { id: 1, name: "Producto A" },
       { id: 2, name: "Producto B" },
     ];
 
     const mockCart = {
-      addItemDirect: vi.fn(),
+      addItemDirect: vi.fn().mockResolvedValue(true),
     };
 
     const onCartOpen = vi.fn();
@@ -43,7 +46,10 @@ describe("useProductActions", () => {
       useProductActions({ originalProducts, cart: mockCart, onCartOpen }),
     );
 
-    const success = result.current.addProductFromSocket("2");
+    let success;
+    await act(async () => {
+      success = await result.current.addProductFromSocket("2");
+    });
 
     expect(success).toBe(true);
     expect(mockCart.addItemDirect).toHaveBeenCalledWith(originalProducts[1], {
@@ -51,14 +57,14 @@ describe("useProductActions", () => {
     });
   });
 
-  it("encuentra y agrega un producto por producto_id", () => {
+  it("encuentra y agrega un producto por producto_id", async () => {
     const originalProducts = [
       { id: 1, producto_id: "ABC", name: "Producto A" },
       { id: 2, producto_id: "XYZ", name: "Producto B" },
     ];
 
     const mockCart = {
-      addItemDirect: vi.fn(),
+      addItemDirect: vi.fn().mockResolvedValue(true),
     };
 
     const onCartOpen = vi.fn();
@@ -67,7 +73,10 @@ describe("useProductActions", () => {
       useProductActions({ originalProducts, cart: mockCart, onCartOpen }),
     );
 
-    const success = result.current.addProductFromSocket("XYZ");
+    let success;
+    await act(async () => {
+      success = await result.current.addProductFromSocket("XYZ");
+    });
 
     expect(success).toBe(true);
     expect(mockCart.addItemDirect).toHaveBeenCalledWith(originalProducts[1], {
@@ -75,7 +84,7 @@ describe("useProductActions", () => {
     });
   });
 
-  it("retorna false cuando no encuentra el producto", () => {
+  it("retorna false cuando no encuentra el producto", async () => {
     const originalProducts = [
       { id: 1, productMatrixId: "123", name: "Producto A" },
     ];
@@ -94,7 +103,10 @@ describe("useProductActions", () => {
       useProductActions({ originalProducts, cart: mockCart, onCartOpen }),
     );
 
-    const success = result.current.addProductFromSocket("999");
+    let success;
+    await act(async () => {
+      success = await result.current.addProductFromSocket("999");
+    });
 
     expect(success).toBe(false);
     expect(mockCart.addItemDirect).not.toHaveBeenCalled();
@@ -106,13 +118,13 @@ describe("useProductActions", () => {
     consoleWarnSpy.mockRestore();
   });
 
-  it("handleScannerSubmit agrega producto y abre carrito", () => {
+  it("handleScannerSubmit agrega producto y abre carrito", async () => {
     const originalProducts = [
       { id: 1, productMatrixId: "123", name: "Producto A" },
     ];
 
     const mockCart = {
-      addItemDirect: vi.fn(),
+      addItemDirect: vi.fn().mockResolvedValue(true),
     };
 
     const onCartOpen = vi.fn();
@@ -121,13 +133,15 @@ describe("useProductActions", () => {
       useProductActions({ originalProducts, cart: mockCart, onCartOpen }),
     );
 
-    result.current.handleScannerSubmit("123");
+    await act(async () => {
+      await result.current.handleScannerSubmit("123");
+    });
 
     expect(mockCart.addItemDirect).toHaveBeenCalled();
     expect(onCartOpen).toHaveBeenCalled();
   });
 
-  it("handleScannerSubmit no abre carrito si no encuentra producto", () => {
+  it("handleScannerSubmit no abre carrito si no encuentra producto", async () => {
     const originalProducts = [
       { id: 1, productMatrixId: "123", name: "Producto A" },
     ];
@@ -146,7 +160,9 @@ describe("useProductActions", () => {
       useProductActions({ originalProducts, cart: mockCart, onCartOpen }),
     );
 
-    result.current.handleScannerSubmit("999");
+    await act(async () => {
+      await result.current.handleScannerSubmit("999");
+    });
 
     expect(mockCart.addItemDirect).not.toHaveBeenCalled();
     expect(onCartOpen).not.toHaveBeenCalled();

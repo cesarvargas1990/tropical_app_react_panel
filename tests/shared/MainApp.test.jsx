@@ -80,6 +80,8 @@ const baseProducts = [
 ];
 
 const createCartState = (overrides = {}) => ({
+  deviceId: "tablet-test",
+  cartVersion: 1,
   selectedProduct: null,
   sizes: [],
   sizeState: { __activeSizeId: null },
@@ -87,10 +89,12 @@ const createCartState = (overrides = {}) => ({
   groupedItems: [],
   editIndex: null,
   cartCount: 0,
+  syncCart: vi.fn().mockResolvedValue({ items_count: 0 }),
   selectProduct: vi.fn(),
   updateSize: vi.fn(),
-  confirmSizes: vi.fn(),
+  confirmSizes: vi.fn().mockResolvedValue(true),
   removeCartItem: vi.fn(),
+  removeGroup: vi.fn(),
   clearCart: vi.fn(),
   startEditItem: vi.fn(() => ({ ok: true })),
   finishEditCancel: vi.fn(),
@@ -107,7 +111,7 @@ describe("MainApp", () => {
     useProductSizes.mockReturnValue({ getSizesFor: vi.fn() });
   });
 
-  it("scrolls to top when confirming product sizes", () => {
+  it("scrolls to top when confirming product sizes", async () => {
     const loadProducts = vi.fn();
     useProductsData.mockReturnValue({
       products: baseProducts,
@@ -128,10 +132,12 @@ describe("MainApp", () => {
 
     fireEvent.click(screen.getByText("confirm-size"));
 
-    expect(cartState.confirmSizes).toHaveBeenCalledTimes(1);
-    expect(globalThis.scrollTo).toHaveBeenCalledWith({
-      top: 0,
-      behavior: "auto",
+    await waitFor(() => {
+      expect(cartState.confirmSizes).toHaveBeenCalledTimes(1);
+      expect(globalThis.scrollTo).toHaveBeenCalledWith({
+        top: 0,
+        behavior: "auto",
+      });
     });
   });
 
@@ -153,8 +159,8 @@ describe("MainApp", () => {
     expect(useProductsRealtime).toHaveBeenCalledWith(
       expect.objectContaining({
         onReload: loadProducts,
-        onAddProduct: expect.any(Function),
-        onOpenCart: expect.any(Function),
+        onLegacyProductEvent: expect.any(Function),
+        onCartUpdated: expect.any(Function),
       }),
     );
 
@@ -181,12 +187,11 @@ describe("MainApp", () => {
     });
     useProductsRealtime.mockImplementation(() => {});
 
-    const clearCart = vi.fn();
     const cartState = createCartState({
       cartItems: [{ id: 99 }],
       groupedItems: [{ id: 99 }],
       cartCount: 2,
-      clearCart,
+      syncCart: vi.fn().mockResolvedValue({ items_count: 0 }),
     });
     useCartFlow.mockReturnValue(cartState);
 
@@ -205,7 +210,7 @@ describe("MainApp", () => {
       expect(register).toHaveBeenCalledWith(cartState.groupedItems);
     });
 
-    expect(clearCart).toHaveBeenCalledTimes(1);
+    expect(cartState.syncCart).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.queryByTestId("cart-modal")).toBeNull();
@@ -227,12 +232,11 @@ describe("MainApp", () => {
     });
     useProductsRealtime.mockImplementation(() => {});
 
-    const clearCart = vi.fn();
     const cartState = createCartState({
       cartItems: [{ id: 1 }],
       groupedItems: [{ id: 1 }],
       cartCount: 1,
-      clearCart,
+      syncCart: vi.fn(),
     });
     useCartFlow.mockReturnValue(cartState);
 
@@ -245,7 +249,7 @@ describe("MainApp", () => {
     fireEvent.click(screen.getByText("trigger-register"));
 
     await waitFor(() => {
-      expect(registerError).toHaveBeenCalledWith(cartState.cartItems);
+      expect(registerError).toHaveBeenCalledWith(cartState.groupedItems);
       expect(swalFireMock).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Error",
@@ -254,7 +258,7 @@ describe("MainApp", () => {
       );
     });
 
-    expect(clearCart).not.toHaveBeenCalled();
+    expect(cartState.syncCart).not.toHaveBeenCalled();
     expect(screen.getByTestId("cart-modal")).toBeInTheDocument();
   });
 

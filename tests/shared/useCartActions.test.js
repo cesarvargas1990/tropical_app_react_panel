@@ -12,7 +12,7 @@ describe("useCartActions", () => {
   it("handleRegisterSale registra la venta y limpia carrito", async () => {
     const mockCart = {
       groupedItems: [{ id: 1, name: "Item 1" }],
-      clearCart: vi.fn(),
+      syncCart: vi.fn().mockResolvedValue(true),
       cartItems: [{ id: 1 }],
     };
 
@@ -30,7 +30,7 @@ describe("useCartActions", () => {
     const ok = await result.current.handleRegisterSale();
 
     expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
-    expect(mockCart.clearCart).toHaveBeenCalled();
+    expect(mockCart.syncCart).toHaveBeenCalled();
     expect(mockCloseCart).toHaveBeenCalled();
     expect(ok).toBe(true);
   });
@@ -38,7 +38,7 @@ describe("useCartActions", () => {
   it("handleRegisterSale muestra error si falla", async () => {
     const mockCart = {
       groupedItems: [{ id: 1, name: "Item 1" }],
-      clearCart: vi.fn(),
+      syncCart: vi.fn(),
       cartItems: [{ id: 1 }],
     };
 
@@ -58,7 +58,7 @@ describe("useCartActions", () => {
     const ok = await result.current.handleRegisterSale();
 
     expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
-    expect(mockCart.clearCart).not.toHaveBeenCalled();
+    expect(mockCart.syncCart).not.toHaveBeenCalled();
     expect(mockCloseCart).not.toHaveBeenCalled();
     expect(Swal.fire).toHaveBeenCalledWith({
       title: "Error",
@@ -116,7 +116,7 @@ describe("useCartActions", () => {
     expect(mockCloseCart).not.toHaveBeenCalled();
   });
 
-  it("handleEditItem usa sourceIndex si no hay index", () => {
+  it("handleEditItem usa sourceItemId si no hay index", () => {
     const mockCart = {
       startEditItem: vi.fn().mockReturnValue({ ok: true }),
       cartItems: [{ id: 1 }],
@@ -133,13 +133,13 @@ describe("useCartActions", () => {
       }),
     );
 
-    const item = { id: 1, name: "Item 1", sourceIndex: 2 };
+    const item = { id: 1, name: "Item 1", sourceItemId: 2 };
     result.current.handleEditItem(item);
 
     expect(mockCart.startEditItem).toHaveBeenCalledWith(item, 2);
   });
 
-  it("handleEditItem usa sourceIndices[0] si está disponible", () => {
+  it("handleEditItem usa sourceItemIds[0] si está disponible", () => {
     const mockCart = {
       startEditItem: vi.fn().mockReturnValue({ ok: true }),
       cartItems: [{ id: 1 }],
@@ -156,7 +156,7 @@ describe("useCartActions", () => {
       }),
     );
 
-    const item = { id: 1, name: "Item 1", sourceIndices: [3, 4] };
+    const item = { id: 1, name: "Item 1", sourceItemIds: [3, 4] };
     result.current.handleEditItem(item);
 
     expect(mockCart.startEditItem).toHaveBeenCalledWith(item, 3);

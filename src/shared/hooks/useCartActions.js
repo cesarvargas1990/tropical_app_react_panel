@@ -7,7 +7,7 @@ export function useCartActions({ cart, register, closeCart }) {
   const handleRegisterSale = useCallback(async () => {
     try {
       await register(cart.groupedItems);
-      await cart.syncCart();
+      await cart.syncCart?.();
       closeCart();
       return true;
     } catch (error) {
@@ -26,7 +26,12 @@ export function useCartActions({ cart, register, closeCart }) {
       const idx =
         index ??
         item?.sourceItemId ??
-        (item?.sourceItemIds ? item.sourceItemIds[0] : null);
+        item?.sourceIndex ??
+        (item?.sourceItemIds
+          ? item.sourceItemIds[0]
+          : item?.sourceIndices
+            ? item.sourceIndices[0]
+            : null);
       if (idx === null || idx === undefined) return;
 
       const res = cart.startEditItem(item, idx);

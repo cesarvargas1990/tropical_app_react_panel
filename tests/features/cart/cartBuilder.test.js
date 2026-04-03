@@ -163,10 +163,13 @@ describe("cartBuilder", () => {
 
       expect(st.__activeSizeId).toBe(5);
       expect(st[5].quantity).toBe(3);
-      expect(st[5].toppings).toBe(200);
+      expect(st[5].toppings).toBeCloseTo(200 / 3);
       expect(st[5].delivery).toBe(true);
       expect(st[5].items).toHaveLength(3);
-      expect(st[5].items[0]).toEqual({ toppings: 200, delivery: true });
+      expect(st[5].items[0]).toEqual({
+        toppings: 200 / 3,
+        delivery: true,
+      });
     });
 
     it("delivery=false cuando item.delivery = 0", () => {

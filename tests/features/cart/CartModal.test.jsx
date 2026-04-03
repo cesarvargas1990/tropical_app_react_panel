@@ -116,9 +116,10 @@ describe("CartModal", () => {
     expect(onEditItem).not.toHaveBeenCalled();
 
     await waitFor(() => {
-      expect(onClear).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+
+    expect(onClear).not.toHaveBeenCalled();
 
     expect(registerButton).not.toBeDisabled();
     expect(registerButton).toHaveTextContent("Registrar venta");
