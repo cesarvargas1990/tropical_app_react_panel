@@ -13,14 +13,15 @@ describe("deviceId service", () => {
   });
 
   it("returns the configured device id from env", async () => {
-    vi.stubEnv("VITE_DEVICE_ID", "tablet-fixed");
+    vi.stubEnv("VITE_DEVICE_ID", "legacy-scanner");
 
     const { getDeviceId } = await import("../../src/shared/services/deviceId");
 
-    expect(getDeviceId()).toBe("tablet-fixed");
+    expect(getDeviceId()).toBe("legacy-scanner");
   });
 
   it("reuses the stored device id from localStorage", async () => {
+    vi.stubEnv("VITE_DEVICE_ID", "");
     window.localStorage.setItem("tropical_device_id", "tablet-existing");
 
     const { getDeviceId } = await import("../../src/shared/services/deviceId");
@@ -29,6 +30,7 @@ describe("deviceId service", () => {
   });
 
   it("creates and stores a new id when none exists", async () => {
+    vi.stubEnv("VITE_DEVICE_ID", "");
     const randomUuid = vi.fn(() => "uuid-1234");
     Object.defineProperty(globalThis, "crypto", {
       value: { randomUUID: randomUuid },
