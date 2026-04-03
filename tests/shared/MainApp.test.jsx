@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import MainApp from "../../src/shared/components/MainApp";
 import { useProductsData } from "../../src/features/products/hooks/useProductsData";
@@ -175,6 +175,43 @@ describe("MainApp", () => {
       name: /Continuar pedido/i,
     });
     expect(continueButton).toBeDisabled();
+  });
+
+  it("does not auto-open the cart from CartUpdated while the size modal is active", async () => {
+    const loadProducts = vi.fn();
+    let realtimeHandlers = null;
+
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: baseProducts,
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation((handlers) => {
+      realtimeHandlers = handlers;
+    });
+    useSaleRegister.mockReturnValue({ register: vi.fn() });
+
+    const cartState = createCartState({
+      selectedProduct: baseProducts[0],
+      sizes: [{ id: 1, name: "Mediano" }],
+      cartVersion: 1,
+      syncCart: vi.fn().mockResolvedValue({ items_count: 2 }),
+    });
+    useCartFlow.mockReturnValue(cartState);
+
+    render(<MainApp />);
+
+    await act(async () => {
+      await realtimeHandlers.onCartUpdated({
+        deviceId: "tablet-test",
+        version: 2,
+      });
+    });
+
+    expect(cartState.syncCart).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("cart-modal")).toBeNull();
+    expect(screen.getByTestId("size-modal")).toBeInTheDocument();
   });
 
   it("registers a sale, clears the cart and hides the modal on success", async () => {

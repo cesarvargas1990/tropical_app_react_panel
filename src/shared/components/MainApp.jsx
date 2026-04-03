@@ -102,6 +102,7 @@ function MainApp() {
       if (!event) return;
       if (String(event.deviceId ?? "") !== String(cart.deviceId)) return;
       if (Number(event.version ?? 0) <= Number(cart.cartVersion ?? 0)) return;
+      if (cart.selectedProduct) return;
 
       void cart.syncCart().then((serverCart) => {
         if (Number(serverCart?.items_count ?? 0) > 0) {
