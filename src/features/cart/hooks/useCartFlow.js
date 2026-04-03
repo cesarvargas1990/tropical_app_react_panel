@@ -1,5 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildCartItems, buildEditSizeState } from "../utils/cartBuilder";
+import {
+  addCartItems,
+  clearActiveCart,
+  getActiveCart,
+  removeCartItem as removeCartItemRequest,
+  scanCartItem,
+} from "../services/cartService";
+import { getDeviceId } from "../../../shared/services/deviceId";
 
 /**
  * Hook principal para manejar todo el flujo del carrito
@@ -14,11 +22,67 @@ export function useCartFlow({
   getSizesFor,
   products,
 }) {
+  const deviceId = useMemo(() => getDeviceId(), []);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sizeState, setSizeState] = useState({});
   const [cartItems, setCartItems] = useState([]);
+  const [cartId, setCartId] = useState(null);
+  const [cartVersion, setCartVersion] = useState(0);
+  const [cartStatus, setCartStatus] = useState("active");
   const [editIndex, setEditIndex] = useState(null);
-  const [editSourceIndices, setEditSourceIndices] = useState([]);
+  const [editSourceItemIds, setEditSourceItemIds] = useState([]);
+  const syncPromiseRef = useRef(null);
+
+  const showCartError = useCallback(async (error, fallbackMessage) => {
+    const Swal = (await import("sweetalert2")).default;
+    await Swal.fire({
+      title: "Error",
+      text: error?.response?.data?.message || error?.message || fallbackMessage,
+      icon: "error",
+      didOpen: () => {
+        const container = Swal.getContainer();
+        if (container) container.style.zIndex = "999999";
+      },
+    });
+  }, []);
+
+  const productByMatrixId = useMemo(() => {
+    return new Map(
+      originalProducts.map((product) => [
+        String(product.productMatrixId ?? product.id),
+        product,
+      ]),
+    );
+  }, [originalProducts]);
+
+  const enrichCartItem = useCallback(
+    (item) => {
+      const match = productByMatrixId.get(String(item.productMatrixId ?? ""));
+
+      return {
+        ...item,
+        size:
+          item.size ??
+          item.sizeId ??
+          match?.tamano_id ??
+          match?.tamanoId ??
+          null,
+      };
+    },
+    [productByMatrixId],
+  );
+
+  const hydrateCart = useCallback(
+    (serverCart) => {
+      const nextCart = serverCart ?? {};
+      setCartId(nextCart.id ?? null);
+      setCartVersion(Number(nextCart.version ?? 0));
+      setCartStatus(nextCart.status ?? "active");
+      setCartItems((nextCart.items ?? []).map(enrichCartItem));
+      return nextCart;
+    },
+    [enrichCartItem],
+  );
   const playBeep = useCallback(() => {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
@@ -59,6 +123,52 @@ export function useCartFlow({
     [cartItems],
   );
 
+  const syncCart = useCallback(async () => {
+    if (syncPromiseRef.current) {
+      return syncPromiseRef.current;
+    }
+
+    syncPromiseRef.current = getActiveCart(deviceId)
+      .then((serverCart) => hydrateCart(serverCart))
+      .finally(() => {
+        syncPromiseRef.current = null;
+      });
+
+    return syncPromiseRef.current;
+  }, [deviceId, hydrateCart]);
+
+  useEffect(() => {
+    void syncCart();
+
+    const handleOnline = () => {
+      void syncCart();
+    };
+
+    const handleFocus = () => {
+      void syncCart();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void syncCart();
+      }
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [syncCart]);
+
+  useEffect(() => {
+    setCartItems((prev) => prev.map(enrichCartItem));
+  }, [enrichCartItem]);
+
   const resolvedSizes = useMemo(() => {
     if (!selectedProduct) return [];
     return getSizesFor(selectedProduct);
@@ -66,6 +176,7 @@ export function useCartFlow({
 
   const groupKey = useCallback((item) => {
     return JSON.stringify({
+      productMatrixId: item.productMatrixId,
       productName: item.productName,
       size: item.size,
       sizeLabel: item.sizeLabel,
@@ -77,19 +188,23 @@ export function useCartFlow({
 
   const groupedItems = useMemo(() => {
     const map = new Map();
-    cartItems.forEach((item, idx) => {
+    cartItems.forEach((item) => {
       const key = groupKey(item);
       if (!map.has(key)) {
         map.set(key, {
           ...item,
-          sourceIndices: [idx],
-          sourceIndex: idx,
+          sourceItemIds: item.id ? [item.id] : [],
+          sourceItemId: item.id ?? null,
         });
       } else {
         const current = map.get(key);
         current.quantity += item.quantity;
+        current.toppings += item.toppings;
+        current.delivery += item.delivery;
         current.subtotal += item.subtotal;
-        current.sourceIndices.push(idx);
+        if (item.id) {
+          current.sourceItemIds.push(item.id);
+        }
       }
     });
     return Array.from(map.values());
@@ -104,7 +219,27 @@ export function useCartFlow({
     setSizeState((prev) => ({ ...prev, [id]: data }));
   }, []);
 
-  const confirmSizes = useCallback(() => {
+  const removeItemIds = useCallback(
+    async (itemIds) => {
+      let latestCart = null;
+
+      for (const itemId of itemIds) {
+        latestCart = await removeCartItemRequest({
+          deviceId,
+          itemId,
+        });
+      }
+
+      if (latestCart) {
+        hydrateCart(latestCart);
+      }
+
+      return latestCart;
+    },
+    [deviceId, hydrateCart],
+  );
+
+  const confirmSizes = useCallback(async () => {
     const newItems = buildCartItems({
       sizes: resolvedSizes,
       sizeState,
@@ -113,31 +248,34 @@ export function useCartFlow({
       matrix,
     });
 
-    if (!newItems.length) return;
+    if (!newItems.length) return false;
 
-    if (editIndex !== null) {
-      setCartItems((prev) => {
-        const indices = (
-          editSourceIndices.length ? editSourceIndices : [editIndex]
-        ).filter((i) => i !== null && i !== undefined);
-        if (!indices.length) return prev;
+    try {
+      if (editIndex !== null) {
+        const itemIds = (
+          editSourceItemIds.length ? editSourceItemIds : []
+        ).filter(Boolean);
+        if (itemIds.length) {
+          await removeItemIds(itemIds);
+        }
+      }
 
-        const primary = Math.min(...indices);
-        const rest = indices.filter((i) => i !== primary).sort((a, b) => b - a);
-
-        const copy = [...prev];
-        rest.forEach((i) => copy.splice(i, 1));
-        copy[primary] = newItems[0];
-        return copy;
+      const serverCart = await addCartItems({
+        deviceId,
+        items: newItems,
+        source: "manual",
       });
-      setEditIndex(null);
-      setEditSourceIndices([]);
-    } else {
-      setCartItems((prev) => [...prev, ...newItems]);
-    }
 
-    setSelectedProduct(null);
-    setSizeState({});
+      hydrateCart(serverCart);
+      setSelectedProduct(null);
+      setSizeState({});
+      setEditIndex(null);
+      setEditSourceItemIds([]);
+      return true;
+    } catch (error) {
+      await showCartError(error, "No se pudo actualizar el carrito.");
+      return false;
+    }
   }, [
     resolvedSizes,
     sizeState,
@@ -145,42 +283,83 @@ export function useCartFlow({
     originalProducts,
     matrix,
     editIndex,
-    playBeep,
+    editSourceItemIds,
+    removeItemIds,
+    deviceId,
+    hydrateCart,
+    showCartError,
   ]);
 
-  const removeCartItem = useCallback((index) => {
-    setCartItems((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+  const removeCartItem = useCallback(
+    async (itemId) => {
+      try {
+        const serverCart = await removeCartItemRequest({
+          deviceId,
+          itemId,
+        });
+        hydrateCart(serverCart);
+        return true;
+      } catch (error) {
+        await showCartError(error, "No se pudo eliminar el item del carrito.");
+        return false;
+      }
+    },
+    [deviceId, hydrateCart, showCartError],
+  );
 
-  const clearCart = useCallback(() => setCartItems([]), []);
+  const clearCart = useCallback(async () => {
+    try {
+      const serverCart = await clearActiveCart({ deviceId });
+      hydrateCart(serverCart);
+      return true;
+    } catch (error) {
+      await showCartError(error, "No se pudo limpiar el carrito.");
+      return false;
+    }
+  }, [deviceId, hydrateCart, showCartError]);
 
   const removeGroup = useCallback(
-    (item) => {
-      const key = groupKey(item);
-      setCartItems((prev) => prev.filter((i) => groupKey(i) !== key));
+    async (item) => {
+      const itemIds = (item?.sourceItemIds ?? []).filter(Boolean);
+
+      if (!itemIds.length && item?.id) {
+        return removeCartItem(item.id);
+      }
+
+      try {
+        await removeItemIds(itemIds);
+        return true;
+      } catch (error) {
+        await showCartError(error, "No se pudo eliminar el grupo del carrito.");
+        return false;
+      }
     },
-    [groupKey],
+    [removeCartItem, removeItemIds, showCartError],
   );
 
   const startEditItem = useCallback(
     (item, index) => {
-      const baseName = item.productName?.split(" (")[0] ?? item.productName;
-      const product = products.find((p) => p.name === baseName);
+      const product =
+        productByMatrixId.get(String(item.productMatrixId ?? "")) ??
+        products.find(
+          (p) =>
+            p.name === (item.productName?.split(" (")[0] ?? item.productName),
+        );
       if (!product) return { ok: false };
 
       setSelectedProduct(product);
-      const indices = item?.sourceIndices?.length
-        ? item.sourceIndices
-        : [index];
-      setEditIndex(indices[0] ?? null);
-      setEditSourceIndices(
-        indices.filter((i) => i !== null && i !== undefined),
+      const itemIds = item?.sourceItemIds?.length
+        ? item.sourceItemIds
+        : [item?.id].filter(Boolean);
+      setEditIndex(index ?? 0);
+      setEditSourceItemIds(
+        itemIds.filter((itemId) => itemId !== null && itemId !== undefined),
       );
       setSizeState(buildEditSizeState(item));
 
       return { ok: true };
     },
-    [products],
+    [productByMatrixId, products],
   );
 
   const setSizes = useCallback(() => {}, []);
@@ -188,53 +367,45 @@ export function useCartFlow({
   const finishEditCancel = useCallback(() => {
     setSelectedProduct(null);
     setEditIndex(null);
-    setEditSourceIndices([]);
+    setEditSourceItemIds([]);
   }, []);
 
   const addItemDirect = useCallback(
-    (product, { fromSocket = false } = {}) => {
+    async (product, { fromSocket = false } = {}) => {
       if (!product) return false;
 
-      const characteristic =
-        product.caracteristica ??
-        product.caracteristica_nombre ??
-        product.feature ??
-        "";
+      try {
+        const serverCart = await scanCartItem({
+          deviceId,
+          productMatrixId: product.productMatrixId ?? product.id ?? null,
+        });
 
-      const productName = characteristic
-        ? `${product.sabor ?? product.name ?? "Producto"} (${characteristic})`
-        : (product.sabor ?? product.name ?? "Producto");
-
-      const item = {
-        productName,
-        size:
-          product.tamano_id ?? product.tamanoId ?? product.tamano_id ?? null,
-        sizeLabel: product.tamano ?? product.sizeLabel ?? "",
-        quantity: 1,
-        unitPrice: Number(product.valor ?? 0),
-        toppings: 0,
-        delivery: 0,
-        subtotal: Number(product.valor ?? 0),
-        machineId: product.machineId ?? null,
-        maquinaConfId: product.maquinaConfId ?? product.maquina_conf_id ?? null,
-        productMatrixId: product.productMatrixId ?? product.id ?? null,
-      };
-
-      setCartItems((prev) => [...prev, item]);
-      if (fromSocket) playBeep();
-      return true;
+        hydrateCart(serverCart);
+        if (fromSocket) playBeep();
+        return true;
+      } catch (error) {
+        await showCartError(
+          error,
+          "No se pudo agregar el producto al carrito.",
+        );
+        return false;
+      }
     },
-    [playBeep],
+    [deviceId, hydrateCart, playBeep, showCartError],
   );
 
   return {
     // state
+    deviceId,
+    cartId,
+    cartVersion,
+    cartStatus,
     sizes: resolvedSizes,
     selectedProduct,
     sizeState,
     cartItems,
     editIndex,
-    editSourceIndices,
+    editSourceItemIds,
     cartCount,
 
     // setters/handlers
@@ -243,10 +414,12 @@ export function useCartFlow({
     setSizeState,
     setCartItems,
     setEditIndex,
-    setEditSourceIndices,
+    setEditSourceItemIds,
 
     selectProduct,
     updateSize,
+    syncCart,
+    hydrateCart,
     confirmSizes,
     removeCartItem,
     clearCart,

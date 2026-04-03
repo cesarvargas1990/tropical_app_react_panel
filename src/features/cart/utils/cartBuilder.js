@@ -82,14 +82,16 @@ export function buildCartItems({
  */
 export function buildEditSizeState(item) {
   const activeSizeId = item.size;
+  const quantity = Math.max(1, Number(item.quantity || 1));
+  const toppingsPerItem = Number(item.toppings || 0) / quantity;
   return {
     __activeSizeId: activeSizeId,
     [activeSizeId]: {
-      quantity: item.quantity,
-      toppings: item.toppings,
+      quantity,
+      toppings: toppingsPerItem,
       delivery: item.delivery > 0,
-      items: Array.from({ length: item.quantity }).map(() => ({
-        toppings: item.toppings,
+      items: Array.from({ length: quantity }).map(() => ({
+        toppings: toppingsPerItem,
         delivery: item.delivery > 0,
       })),
     },

@@ -5,7 +5,7 @@ import { useCallback } from "react";
  */
 export function useProductActions({ originalProducts, cart, onCartOpen }) {
   const addProductFromSocket = useCallback(
-    (productId) => {
+    async (productId) => {
       const match = originalProducts.find(
         (p) =>
           String(p.productMatrixId ?? "") === String(productId) ||
@@ -18,18 +18,20 @@ export function useProductActions({ originalProducts, cart, onCartOpen }) {
         return false;
       }
 
-      cart.addItemDirect(match, { fromSocket: true });
-      return true;
+      const added = await cart.addItemDirect(match, { fromSocket: true });
+      if (added) {
+        onCartOpen?.();
+      }
+      return added;
     },
-    [originalProducts, cart],
+    [originalProducts, cart, onCartOpen],
   );
 
   const handleScannerSubmit = useCallback(
-    (value) => {
-      const ok = addProductFromSocket(value);
-      if (ok) onCartOpen?.();
+    async (value) => {
+      await addProductFromSocket(value);
     },
-    [addProductFromSocket, onCartOpen],
+    [addProductFromSocket],
   );
 
   return {

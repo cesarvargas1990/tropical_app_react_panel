@@ -1,4 +1,6 @@
 import api from "../../../shared/services/api";
+import { checkoutCart } from "../../cart/services/cartService";
+import { getDeviceId } from "../../../shared/services/deviceId";
 
 export async function getLatestSales() {
   const res = await api.get("/api/sales/latest");
@@ -6,6 +8,8 @@ export async function getLatestSales() {
 }
 
 export async function registerSale(cartItems) {
-  const res = await api.post("/api/sales", cartItems);
-  return res.data;
+  void cartItems;
+  return checkoutCart({
+    deviceId: getDeviceId(),
+  });
 }

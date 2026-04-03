@@ -18,9 +18,10 @@ export function CartModal({ items, onClose, onClear, onRegister, onEditItem }) {
     setIsRegistering(true);
 
     try {
-      await Promise.resolve(onRegister());
-      onClear?.();
-      onClose?.();
+      const ok = await Promise.resolve(onRegister());
+      if (ok !== false) {
+        onClose?.();
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -34,9 +35,9 @@ export function CartModal({ items, onClose, onClear, onRegister, onEditItem }) {
     }
   };
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (!isRegistering) {
-      onClear?.();
+      await Promise.resolve(onClear?.());
     }
   };
 

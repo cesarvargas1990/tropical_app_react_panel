@@ -65,7 +65,7 @@ function MainApp() {
   });
 
   // Product actions (scanner + socket)
-  const { addProductFromSocket, handleScannerSubmit } = useProductActions({
+  const { handleScannerSubmit } = useProductActions({
     originalProducts,
     cart,
     onCartOpen: openCart,
@@ -89,10 +89,33 @@ function MainApp() {
   ]);
 
   // Real-time updates via WebSocket
+  const handleLegacyProductEvent = useCallback(() => {
+    void cart.syncCart().then((serverCart) => {
+      if (Number(serverCart?.items_count ?? 0) > 0) {
+        openCart();
+      }
+    });
+  }, [cart, openCart]);
+
+  const handleCartUpdated = useCallback(
+    (event) => {
+      if (!event) return;
+      if (String(event.deviceId ?? "") !== String(cart.deviceId)) return;
+      if (Number(event.version ?? 0) <= Number(cart.cartVersion ?? 0)) return;
+
+      void cart.syncCart().then((serverCart) => {
+        if (Number(serverCart?.items_count ?? 0) > 0) {
+          openCart();
+        }
+      });
+    },
+    [cart, openCart],
+  );
+
   useProductsRealtime({
     onReload: loadProducts,
-    onAddProduct: addProductFromSocket,
-    onOpenCart: openCart,
+    onLegacyProductEvent: handleLegacyProductEvent,
+    onCartUpdated: handleCartUpdated,
   });
 
   // Body scroll lock when modals are open
@@ -206,9 +229,12 @@ function MainApp() {
           sizeState={cart.sizeState}
           onUpdateSize={cart.updateSize}
           onConfirm={() => {
-            cart.confirmSizes();
-            scrollToTop();
-            if (cart.editIndex !== null) openCart();
+            const wasEditing = cart.editIndex !== null;
+            void cart.confirmSizes().then((ok) => {
+              if (!ok) return;
+              scrollToTop();
+              if (wasEditing) openCart();
+            });
           }}
           onCancel={() => {
             cart.finishEditCancel();
