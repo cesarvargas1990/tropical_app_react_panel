@@ -90,12 +90,8 @@ function MainApp() {
 
   // Real-time updates via WebSocket
   const handleLegacyProductEvent = useCallback(() => {
-    void cart.syncCart().then((serverCart) => {
-      if (Number(serverCart?.items_count ?? 0) > 0) {
-        openCart();
-      }
-    });
-  }, [cart, openCart]);
+    void cart.syncCart();
+  }, [cart]);
 
   const handleCartUpdated = useCallback(
     (event) => {
@@ -104,13 +100,9 @@ function MainApp() {
       if (Number(event.version ?? 0) <= Number(cart.cartVersion ?? 0)) return;
       if (cart.selectedProduct) return;
 
-      void cart.syncCart().then((serverCart) => {
-        if (Number(serverCart?.items_count ?? 0) > 0) {
-          openCart();
-        }
-      });
+      void cart.syncCart();
     },
-    [cart, openCart],
+    [cart],
   );
 
   useProductsRealtime({

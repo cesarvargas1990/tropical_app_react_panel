@@ -220,6 +220,72 @@ describe("MainApp", () => {
     expect(screen.getByTestId("size-modal")).toBeInTheDocument();
   });
 
+  it("syncs cart from socket updates without auto-opening the cart modal", async () => {
+    const loadProducts = vi.fn();
+    let realtimeHandlers = null;
+
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: baseProducts,
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation((handlers) => {
+      realtimeHandlers = handlers;
+    });
+    useSaleRegister.mockReturnValue({ register: vi.fn() });
+
+    const cartState = createCartState({
+      cartVersion: 1,
+      cartCount: 1,
+      syncCart: vi.fn().mockResolvedValue({ items_count: 2 }),
+    });
+    useCartFlow.mockReturnValue(cartState);
+
+    render(<MainApp />);
+
+    await act(async () => {
+      await realtimeHandlers.onCartUpdated({
+        deviceId: "tablet-test",
+        version: 2,
+      });
+    });
+
+    expect(cartState.syncCart).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("cart-modal")).toBeNull();
+  });
+
+  it("syncs legacy scanner events without auto-opening the cart modal", async () => {
+    const loadProducts = vi.fn();
+    let realtimeHandlers = null;
+
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: baseProducts,
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation((handlers) => {
+      realtimeHandlers = handlers;
+    });
+    useSaleRegister.mockReturnValue({ register: vi.fn() });
+
+    const cartState = createCartState({
+      cartCount: 1,
+      syncCart: vi.fn().mockResolvedValue({ items_count: 2 }),
+    });
+    useCartFlow.mockReturnValue(cartState);
+
+    render(<MainApp />);
+
+    await act(async () => {
+      await realtimeHandlers.onLegacyProductEvent();
+    });
+
+    expect(cartState.syncCart).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("cart-modal")).toBeNull();
+  });
+
   it("registers a sale, clears the cart and hides the modal on success", async () => {
     const loadProducts = vi.fn();
     useProductsData.mockReturnValue({
