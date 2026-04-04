@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 // Features imports
 import {
   ProductCard,
+  getDirectAccessProductsConfig,
   getProducts,
   useProductsData,
   useProductSizes,
@@ -34,6 +35,12 @@ function normalizeProductText(value) {
     .trim();
 }
 
+const currencyFormatter = new Intl.NumberFormat("es-CO", {
+  style: "currency",
+  currency: "COP",
+  maximumFractionDigits: 0,
+});
+
 /**
  * Componente principal de la aplicación
  * Orquesta todas las features: products, cart, sales
@@ -44,10 +51,37 @@ function MainApp() {
     useProductsData(getProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
+  const [directAccessProductIds, setDirectAccessProductIds] = useState([]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void getDirectAccessProductsConfig()
+      .then((payload) => {
+        if (cancelled) return;
+
+        const nextIds = Array.isArray(payload?.productMatrixIds)
+          ? payload.productMatrixIds
+              .map((value) => Number(value))
+              .filter((value) => Number.isFinite(value) && value > 0)
+          : [];
+
+        setDirectAccessProductIds(nextIds);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDirectAccessProductIds([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Modal state
   const { showCart, showRecent, openCart, closeCart, openRecent, closeRecent } =
@@ -137,6 +171,29 @@ function MainApp() {
     });
   }, [products, searchQuery]);
 
+  const directAccessProducts = useMemo(() => {
+    if (!directAccessProductIds.length) return [];
+
+    const productByMatrixId = new Map(
+      originalProducts.map((product) => [
+        String(product.productMatrixId ?? product.id ?? ""),
+        product,
+      ]),
+    );
+
+    return directAccessProductIds
+      .map((productId) => productByMatrixId.get(String(productId)))
+      .filter(Boolean);
+  }, [directAccessProductIds, originalProducts]);
+
+  const directAccessCounts = useMemo(() => {
+    return cart.cartItems.reduce((acc, item) => {
+      const key = String(item.productMatrixId ?? "");
+      acc[key] = (acc[key] ?? 0) + Number(item.quantity ?? 0);
+      return acc;
+    }, {});
+  }, [cart.cartItems]);
+
   const scrollToTop = useCallback(() => {
     globalThis.scrollTo?.({ top: 0, behavior: "auto" });
   }, []);
@@ -167,6 +224,58 @@ function MainApp() {
       />
 
       <main className="main">
+        {directAccessProducts.length ? (
+          <section className="direct-access-section">
+            <div className="direct-access-header">
+              <div>
+                <div className="direct-access-eyebrow">Acceso directo</div>
+                <h2 className="direct-access-title">Granizados</h2>
+              </div>
+              <p className="direct-access-copy">
+                Agrega Refrescante por tamaño sin abrir la selección manual.
+              </p>
+            </div>
+
+            <div className="direct-access-grid">
+              {directAccessProducts.map((product) => {
+                const productKey = String(
+                  product.productMatrixId ?? product.id ?? "",
+                );
+                const badgeCount = directAccessCounts[productKey] ?? 0;
+
+                return (
+                  <button
+                    key={productKey}
+                    type="button"
+                    className="direct-access-card"
+                    onClick={() => {
+                      void cart.addItemDirect(product);
+                    }}
+                    aria-label={`Agregar ${product.sabor} ${product.tamano}`}
+                  >
+                    {badgeCount > 0 ? (
+                      <span className="direct-access-badge">{badgeCount}</span>
+                    ) : null}
+
+                    <span className="direct-access-size">
+                      {product.tamano ?? "Tamaño"}
+                    </span>
+                    <span className="direct-access-price">
+                      {currencyFormatter.format(Number(product.valor ?? 0))}
+                    </span>
+                    <span className="direct-access-name">
+                      {product.sabor ?? "Producto"}
+                    </span>
+                    <span className="direct-access-detail">
+                      {product.caracteristica ?? "Acceso rápido"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
         <div className="product-search-bar">
           <button
             type="button"

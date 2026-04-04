@@ -4,4 +4,5 @@ export { useProductsData } from "./hooks/useProductsData";
 export { useProductSizes } from "./hooks/useProductSizes";
 export { useProductsRealtime } from "./hooks/useProductsRealtime";
 export { getProducts } from "./services/productsService";
+export { getDirectAccessProductsConfig } from "./services/directAccessProductsService";
 export { getSizes } from "./services/sizesService";

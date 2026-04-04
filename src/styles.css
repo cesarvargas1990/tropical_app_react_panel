@@ -230,6 +230,135 @@ body {
   align-items: stretch;
 }
 
+.direct-access-section {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto 18px;
+  padding: 18px;
+  border: 1px solid #223049;
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(14, 116, 144, 0.35),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(249, 115, 22, 0.22),
+      transparent 40%
+    ),
+    linear-gradient(180deg, #0d1729, #08111e);
+  box-shadow: 0 22px 45px rgba(0, 0, 0, 0.32);
+}
+
+.direct-access-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.direct-access-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #67e8f9;
+}
+
+.direct-access-title {
+  margin: 4px 0 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.direct-access-copy {
+  max-width: 430px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: right;
+  color: #cbd5e1;
+}
+
+.direct-access-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.direct-access-card {
+  position: relative;
+  min-height: 170px;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(14, 165, 233, 0.18), rgba(249, 115, 22, 0.12)),
+    rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 6px;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.direct-access-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(103, 232, 249, 0.55);
+  box-shadow: 0 16px 28px rgba(8, 15, 27, 0.45);
+}
+
+.direct-access-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(127, 29, 29, 0.35);
+}
+
+.direct-access-size {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.direct-access-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fde68a;
+}
+
+.direct-access-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.direct-access-detail {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
 .product-search-display {
   flex: 1;
   border: 1px solid #223049;
@@ -376,6 +505,10 @@ body {
 
 /* 3 CARDS – TABLET VERTICAL */
 @media (min-width: 768px) and (orientation: portrait) {
+  .direct-access-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .product-panel {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -383,6 +516,24 @@ body {
 
 /* 1 columna móvil pequeño */
 @media (max-width: 640px) {
+  .direct-access-section {
+    padding: 16px;
+  }
+
+  .direct-access-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .direct-access-copy {
+    max-width: none;
+    text-align: left;
+  }
+
+  .direct-access-grid {
+    grid-template-columns: 1fr;
+  }
+
   .product-panel {
     grid-template-columns: 1fr;
   }

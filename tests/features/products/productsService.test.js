@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getProducts } from "../../../src/features/products/services/productsService";
+import { getDirectAccessProductsConfig } from "../../../src/features/products/services/directAccessProductsService";
 import api from "../../../src/shared/services/api";
 
 // 🔒 Mock completo del api (axios instance)
@@ -36,5 +37,16 @@ describe("productsService - getProducts", () => {
 
     await expect(getProducts()).rejects.toThrow();
     expect(api.get).toHaveBeenCalledOnce();
+  });
+
+  it("retorna la configuracion de acceso directo", async () => {
+    api.get.mockResolvedValueOnce({
+      data: { productMatrixIds: [334, 336, 338] },
+    });
+
+    const result = await getDirectAccessProductsConfig();
+
+    expect(api.get).toHaveBeenCalledWith("/api/products/direct-access");
+    expect(result).toEqual({ productMatrixIds: [334, 336, 338] });
   });
 });

@@ -12,6 +12,7 @@ import MainApp from "../../src/shared/components/MainApp";
 import { useProductsData } from "../../src/features/products/hooks/useProductsData";
 import { useProductsRealtime } from "../../src/features/products/hooks/useProductsRealtime";
 import { useProductSizes } from "../../src/features/products/hooks/useProductSizes";
+import { getDirectAccessProductsConfig } from "../../src/features/products/services/directAccessProductsService";
 import { useCartFlow } from "../../src/features/cart";
 import { useSaleRegister } from "../../src/features/sales/hooks/useSaleRegister";
 
@@ -30,6 +31,13 @@ vi.mock("../../src/features/products/hooks/useProductsRealtime", () => ({
 vi.mock("../../src/features/products/hooks/useProductSizes", () => ({
   useProductSizes: vi.fn(),
 }));
+
+vi.mock(
+  "../../src/features/products/services/directAccessProductsService",
+  () => ({
+    getDirectAccessProductsConfig: vi.fn(),
+  }),
+);
 
 vi.mock("../../src/features/cart", () => ({
   CartModal: ({ items, onRegister }) => (
@@ -115,6 +123,7 @@ describe("MainApp", () => {
     globalThis.scrollTo = vi.fn();
 
     useProductSizes.mockReturnValue({ getSizesFor: vi.fn() });
+    getDirectAccessProductsConfig.mockResolvedValue({ productMatrixIds: [] });
   });
 
   it("scrolls to top when confirming product sizes", async () => {
@@ -144,6 +153,80 @@ describe("MainApp", () => {
         top: 0,
         behavior: "auto",
       });
+    });
+  });
+
+  it("renders direct access cards from configured product ids and adds items directly", async () => {
+    const loadProducts = vi.fn();
+    getDirectAccessProductsConfig.mockResolvedValue({
+      productMatrixIds: [334, 336, 338],
+    });
+
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: [
+        {
+          productMatrixId: 334,
+          sabor_id: 1,
+          carac_id: 7,
+          sabor: "Refrescante",
+          caracteristica: "Refrescante",
+          tamano: "M",
+          valor: 8000,
+        },
+        {
+          productMatrixId: 336,
+          sabor_id: 1,
+          carac_id: 7,
+          sabor: "Refrescante",
+          caracteristica: "Refrescante",
+          tamano: "L",
+          valor: 12000,
+        },
+        {
+          productMatrixId: 338,
+          sabor_id: 1,
+          carac_id: 7,
+          sabor: "Refrescante",
+          caracteristica: "Refrescante",
+          tamano: "XL",
+          valor: 16000,
+        },
+      ],
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation(() => {});
+    useSaleRegister.mockReturnValue({ register: vi.fn() });
+
+    const cartState = createCartState({
+      cartItems: [
+        { productMatrixId: 336, quantity: 2 },
+        { productMatrixId: 338, quantity: 1 },
+      ],
+      addItemDirect: vi.fn().mockResolvedValue(true),
+    });
+    useCartFlow.mockReturnValue(cartState);
+
+    render(<MainApp />);
+
+    expect(await screen.findByText("Granizados")).toBeInTheDocument();
+    expect(screen.getByText("M")).toBeInTheDocument();
+    expect(screen.getByText("L")).toBeInTheDocument();
+    expect(screen.getByText("XL")).toBeInTheDocument();
+    expect(screen.getByText(/\$.*8\.000/)).toBeInTheDocument();
+    expect(screen.getByText(/\$.*12\.000/)).toBeInTheDocument();
+    expect(screen.getByText(/\$.*16\.000/)).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /agregar refrescante l/i }),
+    );
+
+    await waitFor(() => {
+      expect(cartState.addItemDirect).toHaveBeenCalledWith(
+        expect.objectContaining({ productMatrixId: 336 }),
+      );
     });
   });
 
