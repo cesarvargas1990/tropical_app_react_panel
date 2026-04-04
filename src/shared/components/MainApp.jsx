@@ -41,6 +41,16 @@ const currencyFormatter = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 0,
 });
 
+function resolveDirectAccessGroupName(product) {
+  return (
+    product.sabor ??
+    product.name ??
+    product.productName ??
+    product.nombre ??
+    "Producto"
+  );
+}
+
 /**
  * Componente principal de la aplicación
  * Orquesta todas las features: products, cart, sales
@@ -194,6 +204,19 @@ function MainApp() {
     }, {});
   }, [cart.cartItems]);
 
+  const directAccessGroups = useMemo(() => {
+    return directAccessProducts.reduce((acc, product) => {
+      const groupName = resolveDirectAccessGroupName(product);
+
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+
+      acc[groupName].push(product);
+      return acc;
+    }, {});
+  }, [directAccessProducts]);
+
   const scrollToTop = useCallback(() => {
     globalThis.scrollTo?.({ top: 0, behavior: "auto" });
   }, []);
@@ -227,51 +250,61 @@ function MainApp() {
         {directAccessProducts.length ? (
           <section className="direct-access-section">
             <div className="direct-access-header">
-              <div>
-                <div className="direct-access-eyebrow">Acceso directo</div>
-                <h2 className="direct-access-title">Granizados</h2>
-              </div>
-              <p className="direct-access-copy">
-                Agrega Refrescante por tamaño sin abrir la selección manual.
-              </p>
+              <h2 className="direct-access-title">Granizados</h2>
             </div>
 
-            <div className="direct-access-grid">
-              {directAccessProducts.map((product) => {
-                const productKey = String(
-                  product.productMatrixId ?? product.id ?? "",
-                );
-                const badgeCount = directAccessCounts[productKey] ?? 0;
+            <div className="direct-access-groups">
+              {Object.entries(directAccessGroups).map(([groupName, items]) => (
+                <section key={groupName} className="direct-access-group">
+                  <h3 className="direct-access-group-title">{groupName}</h3>
 
-                return (
-                  <button
-                    key={productKey}
-                    type="button"
-                    className="direct-access-card"
-                    onClick={() => {
-                      void cart.addItemDirect(product);
-                    }}
-                    aria-label={`Agregar ${product.sabor} ${product.tamano}`}
-                  >
-                    {badgeCount > 0 ? (
-                      <span className="direct-access-badge">{badgeCount}</span>
-                    ) : null}
+                  <div className="direct-access-grid">
+                    {items.map((product) => {
+                      const productKey = String(
+                        product.productMatrixId ?? product.id ?? "",
+                      );
+                      const badgeCount = directAccessCounts[productKey] ?? 0;
+                      const detailText =
+                        product.caracteristica &&
+                        product.caracteristica !== groupName
+                          ? product.caracteristica
+                          : null;
 
-                    <span className="direct-access-size">
-                      {product.tamano ?? "Tamaño"}
-                    </span>
-                    <span className="direct-access-price">
-                      {currencyFormatter.format(Number(product.valor ?? 0))}
-                    </span>
-                    <span className="direct-access-name">
-                      {product.sabor ?? "Producto"}
-                    </span>
-                    <span className="direct-access-detail">
-                      {product.caracteristica ?? "Acceso rápido"}
-                    </span>
-                  </button>
-                );
-              })}
+                      return (
+                        <button
+                          key={productKey}
+                          type="button"
+                          className="direct-access-card"
+                          onClick={() => {
+                            void cart.addItemDirect(product);
+                          }}
+                          aria-label={`Agregar ${groupName} ${product.tamano}`}
+                        >
+                          {badgeCount > 0 ? (
+                            <span className="direct-access-badge">
+                              {badgeCount}
+                            </span>
+                          ) : null}
+
+                          <span className="direct-access-size">
+                            {product.tamano ?? "Tamaño"}
+                          </span>
+                          <span className="direct-access-price">
+                            {currencyFormatter.format(
+                              Number(product.valor ?? 0),
+                            )}
+                          </span>
+                          {detailText ? (
+                            <span className="direct-access-detail">
+                              {detailText}
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           </section>
         ) : null}

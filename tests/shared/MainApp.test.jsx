@@ -211,6 +211,7 @@ describe("MainApp", () => {
     render(<MainApp />);
 
     expect(await screen.findByText("Granizados")).toBeInTheDocument();
+    expect(screen.getByText("Refrescante")).toBeInTheDocument();
     expect(screen.getByText("M")).toBeInTheDocument();
     expect(screen.getByText("L")).toBeInTheDocument();
     expect(screen.getByText("XL")).toBeInTheDocument();
@@ -218,6 +219,7 @@ describe("MainApp", () => {
     expect(screen.getByText(/\$.*12\.000/)).toBeInTheDocument();
     expect(screen.getByText(/\$.*16\.000/)).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.queryAllByText("Refrescante")).toHaveLength(1);
 
     fireEvent.click(
       screen.getByRole("button", { name: /agregar refrescante l/i }),
