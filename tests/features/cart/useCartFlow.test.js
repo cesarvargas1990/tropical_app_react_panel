@@ -374,4 +374,75 @@ describe("useCartFlow", () => {
     expect(result.current.cartItems).toEqual([]);
     expect(swalFireMock).toHaveBeenCalledTimes(1);
   });
+
+  it("preserva el item optimista durante syncs viejos mientras el scan sigue pendiente", async () => {
+    let resolveScan;
+    scanCartItem.mockReturnValue(
+      new Promise((resolve) => {
+        resolveScan = resolve;
+      }),
+    );
+
+    getActiveCart
+      .mockResolvedValueOnce({
+        id: 10,
+        version: 1,
+        status: "active",
+        items: [],
+      })
+      .mockResolvedValueOnce({
+        id: 10,
+        version: 1,
+        status: "active",
+        items: [],
+      });
+
+    const { result } = setup();
+    let promise;
+
+    act(() => {
+      promise = result.current.addItemDirect({
+        productMatrixId: 33,
+        sabor: "Mango",
+        caracteristica: "Clasico",
+        tamano: "L",
+        valor: 5000,
+      });
+    });
+
+    expect(result.current.cartCount).toBe(1);
+
+    await act(async () => {
+      await result.current.syncCart();
+    });
+
+    expect(result.current.cartCount).toBe(1);
+    expect(result.current.cartItems[0].id).toMatch(/^optimistic-/);
+
+    await act(async () => {
+      resolveScan({
+        id: 10,
+        version: 2,
+        status: "active",
+        items: [
+          {
+            id: 88,
+            productMatrixId: 33,
+            productName: "Mango (Clasico)",
+            quantity: 1,
+            unitPrice: 5000,
+            toppings: 0,
+            delivery: 0,
+            subtotal: 5000,
+            sizeLabel: "L",
+          },
+        ],
+      });
+
+      await promise;
+    });
+
+    expect(result.current.cartCount).toBe(1);
+    expect(result.current.cartItems[0].id).toBe(88);
+  });
 });

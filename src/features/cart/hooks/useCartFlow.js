@@ -33,6 +33,8 @@ export function useCartFlow({
   const [editIndex, setEditIndex] = useState(null);
   const [editSourceItemIds, setEditSourceItemIds] = useState([]);
   const syncPromiseRef = useRef(null);
+  const pendingOptimisticItemsRef = useRef(new Map());
+  const cartVersionRef = useRef(0);
 
   const showCartError = useCallback(async (error, fallbackMessage) => {
     const Swal = (await import("sweetalert2")).default;
@@ -73,16 +75,41 @@ export function useCartFlow({
     [productByMatrixId],
   );
 
+  useEffect(() => {
+    cartVersionRef.current = Number(cartVersion ?? 0);
+  }, [cartVersion]);
+
+  const mergePendingOptimisticItems = useCallback((serverItems) => {
+    const pendingItems = Array.from(pendingOptimisticItemsRef.current.values());
+    if (!pendingItems.length) {
+      return serverItems;
+    }
+
+    return [...serverItems, ...pendingItems];
+  }, []);
+
   const hydrateCart = useCallback(
-    (serverCart) => {
+    (serverCart, { preserveOptimistic = false } = {}) => {
       const nextCart = serverCart ?? {};
+      const nextVersion = Number(nextCart.version ?? 0);
+      const currentVersion = Number(cartVersionRef.current ?? 0);
+
+      if (nextVersion < currentVersion) {
+        return nextCart;
+      }
+
+      const nextItems = (nextCart.items ?? []).map(enrichCartItem);
+      const mergedItems = preserveOptimistic
+        ? mergePendingOptimisticItems(nextItems)
+        : nextItems;
+
       setCartId(nextCart.id ?? null);
-      setCartVersion(Number(nextCart.version ?? 0));
+      setCartVersion(nextVersion);
       setCartStatus(nextCart.status ?? "active");
-      setCartItems((nextCart.items ?? []).map(enrichCartItem));
+      setCartItems(mergedItems);
       return nextCart;
     },
-    [enrichCartItem],
+    [enrichCartItem, mergePendingOptimisticItems],
   );
   const playBeep = useCallback(() => {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -130,7 +157,9 @@ export function useCartFlow({
     }
 
     syncPromiseRef.current = getActiveCart(deviceId)
-      .then((serverCart) => hydrateCart(serverCart))
+      .then((serverCart) =>
+        hydrateCart(serverCart, { preserveOptimistic: true }),
+      )
       .finally(() => {
         syncPromiseRef.current = null;
       });
@@ -418,6 +447,7 @@ export function useCartFlow({
       if (!product) return false;
 
       const optimisticItem = buildOptimisticDirectItem(product);
+      pendingOptimisticItemsRef.current.set(optimisticItem.id, optimisticItem);
       setCartItems((prev) => [...prev, optimisticItem]);
 
       try {
@@ -426,10 +456,12 @@ export function useCartFlow({
           productMatrixId: product.productMatrixId ?? product.id ?? null,
         });
 
-        hydrateCart(serverCart);
+        pendingOptimisticItemsRef.current.delete(optimisticItem.id);
+        hydrateCart(serverCart, { preserveOptimistic: true });
         if (fromSocket) playBeep();
         return true;
       } catch (error) {
+        pendingOptimisticItemsRef.current.delete(optimisticItem.id);
         setCartItems((prev) =>
           prev.filter((item) => item.id !== optimisticItem.id),
         );
