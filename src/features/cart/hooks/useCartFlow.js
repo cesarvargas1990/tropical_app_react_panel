@@ -15,6 +15,7 @@ import { getDeviceId } from "../../../shared/services/deviceId";
  */
 
 let sharedAudioCtx = null;
+let optimisticItemCounter = 0;
 
 export function useCartFlow({
   originalProducts,
@@ -250,6 +251,37 @@ export function useCartFlow({
     [deviceId, hydrateCart],
   );
 
+  const buildOptimisticDirectItem = useCallback(
+    (product) => {
+      const productMatrixId = Number(
+        product?.productMatrixId ?? product?.id ?? 0,
+      );
+      const unitPrice = Number(product?.valor ?? 0);
+      const flavor = product?.sabor ?? product?.name ?? "Producto";
+      const feature = product?.caracteristica ?? null;
+      const sizeLabel = product?.tamano ?? product?.sizeLabel ?? "";
+      const productName = feature ? `${flavor} (${feature})` : flavor;
+
+      optimisticItemCounter += 1;
+
+      return enrichCartItem({
+        id: `optimistic-${productMatrixId}-${optimisticItemCounter}`,
+        productMatrixId,
+        machineId: product?.machineId ?? null,
+        maquinaConfId: product?.maquinaConfId ?? null,
+        productName,
+        sizeLabel,
+        quantity: 1,
+        unitPrice,
+        toppings: 0,
+        delivery: 0,
+        subtotal: unitPrice,
+        source: "scanner",
+      });
+    },
+    [enrichCartItem],
+  );
+
   const confirmSizes = useCallback(async () => {
     const newItems = buildCartItems({
       sizes: resolvedSizes,
@@ -385,6 +417,9 @@ export function useCartFlow({
     async (product, { fromSocket = false } = {}) => {
       if (!product) return false;
 
+      const optimisticItem = buildOptimisticDirectItem(product);
+      setCartItems((prev) => [...prev, optimisticItem]);
+
       try {
         const serverCart = await scanCartItem({
           deviceId,
@@ -395,6 +430,9 @@ export function useCartFlow({
         if (fromSocket) playBeep();
         return true;
       } catch (error) {
+        setCartItems((prev) =>
+          prev.filter((item) => item.id !== optimisticItem.id),
+        );
         await showCartError(
           error,
           "No se pudo agregar el producto al carrito.",
@@ -402,7 +440,7 @@ export function useCartFlow({
         return false;
       }
     },
-    [deviceId, hydrateCart, playBeep, showCartError],
+    [buildOptimisticDirectItem, deviceId, hydrateCart, playBeep, showCartError],
   );
 
   return {
