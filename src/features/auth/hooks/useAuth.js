@@ -22,7 +22,9 @@ export function useAuth() {
       return;
     }
 
-    const storedUserName = (localStorage.getItem("auth_user_name") ?? "").trim();
+    const storedUserName = (
+      localStorage.getItem("auth_user_name") ?? ""
+    ).trim();
 
     if (storedUserName) {
       return;
