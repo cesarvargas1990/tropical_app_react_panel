@@ -46,7 +46,12 @@ describe("Login", () => {
   };
 
   it("stores token and calls onLoginSuccess when credentials are valid", async () => {
-    apiLogin.mockResolvedValue("abc123");
+    apiLogin.mockResolvedValue({
+      token: "abc123",
+      user: {
+        name: "Cesar",
+      },
+    });
     const onLoginSuccess = vi.fn();
 
     render(<Login onLoginSuccess={onLoginSuccess} />);
@@ -60,6 +65,10 @@ describe("Login", () => {
     expect(window.localStorage.setItem).toHaveBeenCalledWith(
       "auth_token",
       "abc123",
+    );
+    expect(window.localStorage.setItem).toHaveBeenCalledWith(
+      "auth_user_name",
+      "Cesar",
     );
     expect(onLoginSuccess).toHaveBeenCalledTimes(1);
     expect(swalFireMock).not.toHaveBeenCalled();

@@ -9,6 +9,9 @@ export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => !!localStorage.getItem("auth_token"),
   );
+  const [userName, setUserName] = useState(
+    () => localStorage.getItem("auth_user_name") ?? "",
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -17,10 +20,16 @@ export function useAuth() {
     setError(null);
 
     try {
-      const token = await apiLogin(email, password);
+      const { token, user } = await apiLogin(email, password);
+      const resolvedUserName = String(
+        user?.name ?? user?.email ?? user?.username ?? "",
+      ).trim();
+
       localStorage.setItem("auth_token", token);
+      localStorage.setItem("auth_user_name", resolvedUserName);
+      setUserName(resolvedUserName);
       setIsAuthenticated(true);
-      return { success: true, token };
+      return { success: true, token, user };
     } catch (err) {
       const errorMessage = err.message || "Credenciales incorrectas";
       setError(errorMessage);
@@ -32,6 +41,8 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user_name");
+    setUserName("");
     setIsAuthenticated(false);
   }, []);
 
@@ -41,6 +52,7 @@ export function useAuth() {
 
   return {
     isAuthenticated,
+    userName,
     isLoading,
     error,
     login,

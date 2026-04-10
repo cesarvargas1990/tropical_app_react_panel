@@ -23,7 +23,10 @@ describe("useAuth", () => {
   });
 
   it("login exitoso actualiza el estado", async () => {
-    authService.apiLogin.mockResolvedValue("token-abc");
+    authService.apiLogin.mockResolvedValue({
+      token: "token-abc",
+      user: { name: "Cesar" },
+    });
     const { result } = renderHook(() => useAuth());
 
     let loginResult;
@@ -34,7 +37,9 @@ describe("useAuth", () => {
     expect(loginResult.success).toBe(true);
     expect(loginResult.token).toBe("token-abc");
     expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.userName).toBe("Cesar");
     expect(localStorage.getItem("auth_token")).toBe("token-abc");
+    expect(localStorage.getItem("auth_user_name")).toBe("Cesar");
   });
 
   it("login fallido maneja el error", async () => {
@@ -55,6 +60,7 @@ describe("useAuth", () => {
 
   it("logout limpia el token y actualiza estado", () => {
     localStorage.setItem("auth_token", "token-123");
+    localStorage.setItem("auth_user_name", "Cesar");
     const { result } = renderHook(() => useAuth());
 
     act(() => {
@@ -63,6 +69,8 @@ describe("useAuth", () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(localStorage.getItem("auth_token")).toBeNull();
+    expect(localStorage.getItem("auth_user_name")).toBeNull();
+    expect(result.current.userName).toBe("");
   });
 
   it("clearError limpia el mensaje de error", async () => {

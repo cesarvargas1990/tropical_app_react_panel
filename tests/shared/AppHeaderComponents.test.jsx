@@ -12,6 +12,7 @@ describe("App header components", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("VITE_APP_VERSION", "9.9.9");
+    localStorage.clear();
   });
 
   it("renders AppHeaderTitle with configured version", () => {
@@ -21,6 +22,14 @@ describe("App header components", () => {
       screen.getByText("Panel de Ventas Insomnia APP"),
     ).toBeInTheDocument();
     expect(screen.getByText("v 9.9.9")).toBeInTheDocument();
+  });
+
+  it("renders AppHeaderTitle with logged user next to version", () => {
+    localStorage.setItem("auth_user_name", "Cesar");
+
+    render(<AppHeaderTitle />);
+
+    expect(screen.getByText("v 9.9.9 (Cesar)")).toBeInTheDocument();
   });
 
   it("renders AppHeaderIconButton badge only when requested", () => {

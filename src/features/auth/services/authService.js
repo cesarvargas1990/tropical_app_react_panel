@@ -13,7 +13,10 @@ export async function apiLogin(email, password) {
       throw new Error("Token no recibido del servidor");
     }
 
-    return res.data.token;
+    return {
+      token: res.data.token,
+      user: res.data.user ?? null,
+    };
   } catch {
     throw new Error("Credenciales incorrectas");
   }

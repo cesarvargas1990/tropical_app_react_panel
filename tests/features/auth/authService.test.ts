@@ -14,14 +14,18 @@ describe("authService - apiLogin", () => {
     vi.clearAllMocks();
   });
 
-  it("retorna el token cuando las credenciales son correctas", async () => {
+  it("retorna token y usuario cuando las credenciales son correctas", async () => {
     mockedAxios.post = vi.fn().mockResolvedValue({
       data: {
         token: "fake-jwt-token",
+        user: {
+          id: 7,
+          name: "Cesar",
+        },
       },
     });
 
-    const token = await apiLogin("test@mail.com", "123456");
+    const payload = await apiLogin("test@mail.com", "123456");
 
     expect(mockedAxios.post).toHaveBeenCalledOnce();
     expect(mockedAxios.post).toHaveBeenCalledWith(
@@ -32,7 +36,13 @@ describe("authService - apiLogin", () => {
       },
     );
 
-    expect(token).toBe("fake-jwt-token");
+    expect(payload).toEqual({
+      token: "fake-jwt-token",
+      user: {
+        id: 7,
+        name: "Cesar",
+      },
+    });
   });
 
   it("lanza error si el servidor no devuelve token", async () => {
