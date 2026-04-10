@@ -25,7 +25,7 @@ describe("useAuth", () => {
   it("login exitoso actualiza el estado", async () => {
     authService.apiLogin.mockResolvedValue({
       token: "token-abc",
-      user: { name: "Cesar" },
+      user: { id: 7, name: "Cesar" },
     });
     const { result } = renderHook(() => useAuth());
 
@@ -40,6 +40,7 @@ describe("useAuth", () => {
     expect(result.current.userName).toBe("Cesar");
     expect(localStorage.getItem("auth_token")).toBe("token-abc");
     expect(localStorage.getItem("auth_user_name")).toBe("Cesar");
+    expect(localStorage.getItem("auth_user_id")).toBe("7");
   });
 
   it("login fallido maneja el error", async () => {
@@ -61,6 +62,7 @@ describe("useAuth", () => {
   it("logout limpia el token y actualiza estado", () => {
     localStorage.setItem("auth_token", "token-123");
     localStorage.setItem("auth_user_name", "Cesar");
+    localStorage.setItem("auth_user_id", "7");
     const { result } = renderHook(() => useAuth());
 
     act(() => {
@@ -70,6 +72,7 @@ describe("useAuth", () => {
     expect(result.current.isAuthenticated).toBe(false);
     expect(localStorage.getItem("auth_token")).toBeNull();
     expect(localStorage.getItem("auth_user_name")).toBeNull();
+    expect(localStorage.getItem("auth_user_id")).toBeNull();
     expect(result.current.userName).toBe("");
   });
 

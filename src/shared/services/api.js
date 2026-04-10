@@ -38,6 +38,7 @@ api.interceptors.response.use(
 
       // borrar token viejo
       localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user_id");
 
       // mensaje visual
       //alert("Tu sesión expiró. Inicia sesión nuevamente.");
