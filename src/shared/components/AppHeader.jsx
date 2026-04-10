@@ -8,6 +8,7 @@ import { AppHeaderTitle } from "./AppHeaderTitle";
  * Componente del header de la aplicación
  */
 export function AppHeader({
+  userName,
   scannerProps,
   cartCount,
   onRecentClick,
@@ -16,7 +17,7 @@ export function AppHeader({
 }) {
   return (
     <header className="top-bar">
-      <AppHeaderTitle />
+      <AppHeaderTitle userName={userName} />
 
       <div className="top-icons">
         <AppHeaderScannerPanel scannerProps={scannerProps} />
@@ -32,6 +33,7 @@ export function AppHeader({
 }
 
 AppHeader.propTypes = {
+  userName: PropTypes.string,
   scannerProps: PropTypes.object.isRequired,
   cartCount: PropTypes.number.isRequired,
   onRecentClick: PropTypes.func.isRequired,

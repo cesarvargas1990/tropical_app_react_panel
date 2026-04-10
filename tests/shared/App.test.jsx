@@ -18,9 +18,10 @@ vi.mock("../../src/features/auth", () => ({
 }));
 
 vi.mock("../../src/shared/components/MainApp", () => ({
-  default: ({ onLogout }) => (
+  default: ({ onLogout, userName }) => (
     <div>
       <div data-testid="mainapp">MAINAPP</div>
+      <div data-testid="username">{userName}</div>
       <button onClick={onLogout}>do-logout</button>
     </div>
   ),
@@ -35,6 +36,7 @@ describe("App", () => {
     useAuth.mockReturnValue({
       isAuthenticated: false,
       logout: vi.fn(),
+      userName: "",
     });
 
     render(<App />);
@@ -47,11 +49,13 @@ describe("App", () => {
     useAuth.mockReturnValue({
       isAuthenticated: true,
       logout: vi.fn(),
+      userName: "Cesar",
     });
 
     render(<App />);
 
     expect(screen.getByTestId("mainapp")).toBeInTheDocument();
+    expect(screen.getByTestId("username")).toHaveTextContent("Cesar");
     expect(screen.queryByTestId("login")).toBeNull();
   });
 
@@ -60,6 +64,7 @@ describe("App", () => {
     useAuth.mockReturnValue({
       isAuthenticated: true,
       logout: mockLogout,
+      userName: "Cesar",
     });
 
     render(<App />);

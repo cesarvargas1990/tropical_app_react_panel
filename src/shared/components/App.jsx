@@ -7,10 +7,10 @@ import MainApp from "./MainApp";
  * Utiliza el hook useAuth para controlar el flujo de login/logout
  */
 export default function App() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, userName } = useAuth();
 
   return isAuthenticated ? (
-    <MainApp onLogout={logout} />
+    <MainApp onLogout={logout} userName={userName} />
   ) : (
     <Login onLoginSuccess={() => window.location.reload()} />
   );

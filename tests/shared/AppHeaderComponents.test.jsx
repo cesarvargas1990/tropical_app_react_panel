@@ -25,9 +25,7 @@ describe("App header components", () => {
   });
 
   it("renders AppHeaderTitle with logged user next to version", () => {
-    localStorage.setItem("auth_user_name", "Cesar");
-
-    render(<AppHeaderTitle />);
+    render(<AppHeaderTitle userName="Cesar" />);
 
     expect(screen.getByText("v 9.9.9 (Cesar)")).toBeInTheDocument();
   });
@@ -154,6 +152,7 @@ describe("App header components", () => {
 
     render(
       <AppHeader
+        userName="Cesar"
         scannerProps={scannerProps}
         cartCount={1}
         onSearchClick={onSearchClick}

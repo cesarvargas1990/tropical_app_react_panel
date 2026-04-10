@@ -55,7 +55,7 @@ function resolveDirectAccessGroupName(product) {
  * Componente principal de la aplicación
  * Orquesta todas las features: products, cart, sales
  */
-function MainApp() {
+function MainApp({ userName = "" }) {
   // Data loading
   const { products, originalProducts, matrix, loadProducts } =
     useProductsData(getProducts);
@@ -230,6 +230,7 @@ function MainApp() {
   return (
     <div className="app">
       <AppHeader
+        userName={userName}
         scannerProps={{
           appActive: scanner.appActive,
           scannerFocused: scanner.scannerFocused,

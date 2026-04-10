@@ -1,10 +1,7 @@
 import React from "react";
+import PropTypes from "prop-types";
 
-export function AppHeaderTitle() {
-  const userName =
-    typeof window !== "undefined"
-      ? (window.localStorage.getItem("auth_user_name") ?? "")
-      : "";
+export function AppHeaderTitle({ userName = "" }) {
   const versionLabel = userName
     ? `v ${import.meta.env.VITE_APP_VERSION} (${userName})`
     : `v ${import.meta.env.VITE_APP_VERSION}`;
@@ -16,3 +13,7 @@ export function AppHeaderTitle() {
     </div>
   );
 }
+
+AppHeaderTitle.propTypes = {
+  userName: PropTypes.string,
+};
