@@ -40,7 +40,7 @@ describe("useSaleRegister", () => {
     );
 
     await act(async () => {
-      await result.current.register([{ id: 123 }]);
+      await result.current.showSuccess();
     });
 
     expect(Swal.fire).toHaveBeenCalledWith(
@@ -53,7 +53,9 @@ describe("useSaleRegister", () => {
     );
   });
 
-  it("retorna true cuando el registro es exitoso", async () => {
+  it("retorna la respuesta del servicio al registrar", async () => {
+    registerSaleMock = vi.fn(() => Promise.resolve({ venta_id: 55 }));
+
     const { result } = renderHook(() =>
       useSaleRegister({ registerSale: registerSaleMock }),
     );
@@ -63,6 +65,6 @@ describe("useSaleRegister", () => {
       response = await result.current.register([{ id: 9 }]);
     });
 
-    expect(response).toBe(true);
+    expect(response).toEqual({ venta_id: 55 });
   });
 });

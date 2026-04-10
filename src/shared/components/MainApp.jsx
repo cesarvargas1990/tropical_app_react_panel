@@ -159,7 +159,7 @@ function MainApp() {
   useBodyLock(Boolean(cart.selectedProduct || showCart || showRecent));
 
   // Sales registration
-  const { register } = useSaleRegister({ registerSale });
+  const { register, showSuccess } = useSaleRegister({ registerSale });
 
   // Cart actions
   const { handleRegisterSale, handleEditItem, cartButtonDisabled } =
@@ -167,6 +167,7 @@ function MainApp() {
       cart,
       register,
       closeCart,
+      showSaleSuccess: showSuccess,
     });
 
   const filteredProducts = useMemo(() => {

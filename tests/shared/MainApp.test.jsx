@@ -110,6 +110,7 @@ const createCartState = (overrides = {}) => ({
   removeCartItem: vi.fn(),
   removeGroup: vi.fn(),
   clearCart: vi.fn(),
+  resetCart: vi.fn(),
   startEditItem: vi.fn(() => ({ ok: true })),
   finishEditCancel: vi.fn(),
   ...overrides,
@@ -135,7 +136,7 @@ describe("MainApp", () => {
       loadProducts,
     });
     useProductsRealtime.mockImplementation(() => {});
-    useSaleRegister.mockReturnValue({ register: vi.fn() });
+    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
 
     const cartState = createCartState({
       selectedProduct: baseProducts[0],
@@ -197,7 +198,7 @@ describe("MainApp", () => {
       loadProducts,
     });
     useProductsRealtime.mockImplementation(() => {});
-    useSaleRegister.mockReturnValue({ register: vi.fn() });
+    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
 
     const cartState = createCartState({
       cartItems: [
@@ -242,7 +243,7 @@ describe("MainApp", () => {
     });
     useProductsRealtime.mockImplementation(() => {});
     useCartFlow.mockReturnValue(createCartState());
-    useSaleRegister.mockReturnValue({ register: vi.fn() });
+    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
 
     render(<MainApp />);
 
@@ -281,7 +282,7 @@ describe("MainApp", () => {
     useProductsRealtime.mockImplementation((handlers) => {
       realtimeHandlers = handlers;
     });
-    useSaleRegister.mockReturnValue({ register: vi.fn() });
+    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
 
     const cartState = createCartState({
       selectedProduct: baseProducts[0],
@@ -318,7 +319,7 @@ describe("MainApp", () => {
     useProductsRealtime.mockImplementation((handlers) => {
       realtimeHandlers = handlers;
     });
-    useSaleRegister.mockReturnValue({ register: vi.fn() });
+    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
 
     const cartState = createCartState({
       cartVersion: 1,
@@ -353,7 +354,7 @@ describe("MainApp", () => {
     useProductsRealtime.mockImplementation((handlers) => {
       realtimeHandlers = handlers;
     });
-    useSaleRegister.mockReturnValue({ register: vi.fn() });
+    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
 
     const cartState = createCartState({
       cartCount: 1,
@@ -390,7 +391,8 @@ describe("MainApp", () => {
     useCartFlow.mockReturnValue(cartState);
 
     const register = vi.fn().mockResolvedValue(undefined);
-    useSaleRegister.mockReturnValue({ register });
+    const showSuccess = vi.fn().mockResolvedValue(undefined);
+    useSaleRegister.mockReturnValue({ register, showSuccess });
 
     render(<MainApp />);
 
@@ -404,7 +406,9 @@ describe("MainApp", () => {
       expect(register).toHaveBeenCalledWith(cartState.groupedItems);
     });
 
+    expect(cartState.resetCart).toHaveBeenCalledTimes(1);
     expect(cartState.syncCart).toHaveBeenCalledTimes(1);
+    expect(showSuccess).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.queryByTestId("cart-modal")).toBeNull();
@@ -435,7 +439,10 @@ describe("MainApp", () => {
     useCartFlow.mockReturnValue(cartState);
 
     const registerError = vi.fn().mockRejectedValue(new Error("boom"));
-    useSaleRegister.mockReturnValue({ register: registerError });
+    useSaleRegister.mockReturnValue({
+      register: registerError,
+      showSuccess: vi.fn(),
+    });
 
     render(<MainApp />);
 
@@ -466,7 +473,7 @@ describe("MainApp", () => {
     });
     useProductsRealtime.mockImplementation(() => {});
     useCartFlow.mockReturnValue(createCartState());
-    useSaleRegister.mockReturnValue({ register: vi.fn() });
+    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
 
     render(<MainApp />);
 

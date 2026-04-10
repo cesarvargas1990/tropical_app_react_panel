@@ -12,38 +12,45 @@ describe("useCartActions", () => {
   it("handleRegisterSale registra la venta y limpia carrito", async () => {
     const mockCart = {
       groupedItems: [{ id: 1, name: "Item 1" }],
+      resetCart: vi.fn(),
       syncCart: vi.fn().mockResolvedValue(true),
       cartItems: [{ id: 1 }],
     };
 
     const mockRegister = vi.fn().mockResolvedValue(true);
     const mockCloseCart = vi.fn();
+    const mockShowSaleSuccess = vi.fn().mockResolvedValue(undefined);
 
     const { result } = renderHook(() =>
       useCartActions({
         cart: mockCart,
         register: mockRegister,
         closeCart: mockCloseCart,
+        showSaleSuccess: mockShowSaleSuccess,
       }),
     );
 
     const ok = await result.current.handleRegisterSale();
 
     expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
+    expect(mockCart.resetCart).toHaveBeenCalled();
     expect(mockCart.syncCart).toHaveBeenCalled();
     expect(mockCloseCart).toHaveBeenCalled();
+    expect(mockShowSaleSuccess).toHaveBeenCalled();
     expect(ok).toBe(true);
   });
 
   it("handleRegisterSale muestra error si falla", async () => {
     const mockCart = {
       groupedItems: [{ id: 1, name: "Item 1" }],
+      resetCart: vi.fn(),
       syncCart: vi.fn(),
       cartItems: [{ id: 1 }],
     };
 
     const mockRegister = vi.fn().mockRejectedValue(new Error("Error de red"));
     const mockCloseCart = vi.fn();
+    const mockShowSaleSuccess = vi.fn();
 
     const Swal = (await import("sweetalert2")).default;
 
@@ -52,14 +59,17 @@ describe("useCartActions", () => {
         cart: mockCart,
         register: mockRegister,
         closeCart: mockCloseCart,
+        showSaleSuccess: mockShowSaleSuccess,
       }),
     );
 
     const ok = await result.current.handleRegisterSale();
 
     expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
+    expect(mockCart.resetCart).not.toHaveBeenCalled();
     expect(mockCart.syncCart).not.toHaveBeenCalled();
     expect(mockCloseCart).not.toHaveBeenCalled();
+    expect(mockShowSaleSuccess).not.toHaveBeenCalled();
     expect(Swal.fire).toHaveBeenCalledWith({
       title: "Error",
       text: "Error de red",

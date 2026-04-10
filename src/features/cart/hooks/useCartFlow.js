@@ -390,6 +390,20 @@ export function useCartFlow({
     }
   }, [deviceId, hydrateCart, showCartError]);
 
+  const resetCart = useCallback(() => {
+    pendingOptimisticItemsRef.current.clear();
+    hydrateCart({
+      id: cartId,
+      device_id: deviceId,
+      status: "active",
+      version: cartVersionRef.current,
+      items_count: 0,
+      subtotal: 0,
+      currency_code: "COP",
+      items: [],
+    });
+  }, [cartId, deviceId, hydrateCart]);
+
   const removeGroup = useCallback(
     async (item) => {
       const itemIds = (item?.sourceItemIds ?? []).filter(Boolean);
@@ -504,6 +518,7 @@ export function useCartFlow({
     confirmSizes,
     removeCartItem,
     clearCart,
+    resetCart,
     removeGroup,
     startEditItem,
     finishEditCancel,

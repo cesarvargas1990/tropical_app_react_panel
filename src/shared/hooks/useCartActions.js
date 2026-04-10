@@ -3,12 +3,14 @@ import { useCallback } from "react";
 /**
  * Hook para manejar las acciones del carrito en MainApp
  */
-export function useCartActions({ cart, register, closeCart }) {
+export function useCartActions({ cart, register, closeCart, showSaleSuccess }) {
   const handleRegisterSale = useCallback(async () => {
     try {
       await register(cart.groupedItems);
+      cart.resetCart?.();
       await cart.syncCart?.();
       closeCart();
+      await showSaleSuccess?.();
       return true;
     } catch (error) {
       const Swal = (await import("sweetalert2")).default;
@@ -19,7 +21,7 @@ export function useCartActions({ cart, register, closeCart }) {
       });
       return false;
     }
-  }, [cart, register, closeCart]);
+  }, [cart, register, closeCart, showSaleSuccess]);
 
   const handleEditItem = useCallback(
     (item, index) => {
