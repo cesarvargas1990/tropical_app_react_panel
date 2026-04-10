@@ -136,7 +136,10 @@ describe("MainApp", () => {
       loadProducts,
     });
     useProductsRealtime.mockImplementation(() => {});
-    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
 
     const cartState = createCartState({
       selectedProduct: baseProducts[0],
@@ -198,7 +201,10 @@ describe("MainApp", () => {
       loadProducts,
     });
     useProductsRealtime.mockImplementation(() => {});
-    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
 
     const cartState = createCartState({
       cartItems: [
@@ -243,7 +249,10 @@ describe("MainApp", () => {
     });
     useProductsRealtime.mockImplementation(() => {});
     useCartFlow.mockReturnValue(createCartState());
-    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
 
     render(<MainApp />);
 
@@ -282,7 +291,10 @@ describe("MainApp", () => {
     useProductsRealtime.mockImplementation((handlers) => {
       realtimeHandlers = handlers;
     });
-    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
 
     const cartState = createCartState({
       selectedProduct: baseProducts[0],
@@ -319,7 +331,10 @@ describe("MainApp", () => {
     useProductsRealtime.mockImplementation((handlers) => {
       realtimeHandlers = handlers;
     });
-    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
 
     const cartState = createCartState({
       cartVersion: 1,
@@ -354,7 +369,10 @@ describe("MainApp", () => {
     useProductsRealtime.mockImplementation((handlers) => {
       realtimeHandlers = handlers;
     });
-    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
 
     const cartState = createCartState({
       cartCount: 1,
@@ -473,7 +491,10 @@ describe("MainApp", () => {
     });
     useProductsRealtime.mockImplementation(() => {});
     useCartFlow.mockReturnValue(createCartState());
-    useSaleRegister.mockReturnValue({ register: vi.fn(), showSuccess: vi.fn() });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
 
     render(<MainApp />);
 
