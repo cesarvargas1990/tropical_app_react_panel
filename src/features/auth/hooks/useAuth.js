@@ -27,7 +27,6 @@ export function useAuth() {
 
       localStorage.setItem("auth_token", token);
       localStorage.setItem("auth_user_name", resolvedUserName);
-      localStorage.setItem("auth_user_id", String(user?.id ?? ""));
       setUserName(resolvedUserName);
       setIsAuthenticated(true);
       return { success: true, token, user };
@@ -43,7 +42,6 @@ export function useAuth() {
   const logout = useCallback(() => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user_name");
-    localStorage.removeItem("auth_user_id");
     setUserName("");
     setIsAuthenticated(false);
   }, []);

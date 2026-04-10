@@ -21,7 +21,6 @@ vi.mock("../../../src/shared/services/api", () => ({
 describe("salesService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
   });
 
   describe("getLatestSales", () => {
@@ -35,13 +34,10 @@ describe("salesService", () => {
         data: fakeSales,
       });
 
-      localStorage.setItem("auth_user_id", "7");
       const result = await getLatestSales();
 
       expect(api.get).toHaveBeenCalledOnce();
-      expect(api.get).toHaveBeenCalledWith("/api/sales/latest", {
-        params: { user_id: 7 },
-      });
+      expect(api.get).toHaveBeenCalledWith("/api/sales/latest");
       expect(result).toEqual(fakeSales);
     });
 

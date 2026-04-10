@@ -108,7 +108,6 @@ describe("api axios instance", () => {
     await expect(responseErrorInterceptor(error)).rejects.toBe(error);
 
     expect(localStorage.removeItem).toHaveBeenCalledWith("auth_token");
-    expect(localStorage.removeItem).toHaveBeenCalledWith("auth_user_id");
     expect(Swal.fire).toHaveBeenCalledTimes(1);
     expect(Swal.getContainer).toHaveBeenCalled();
     expect(container.style.zIndex).toBe("999999");
