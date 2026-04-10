@@ -9,6 +9,7 @@ describe("useAuth", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    authService.apiValidateToken?.mockReset?.();
   });
 
   it("inicializa sin autenticación si no hay token", () => {
@@ -18,8 +19,25 @@ describe("useAuth", () => {
 
   it("inicializa autenticado si hay token en localStorage", () => {
     localStorage.setItem("auth_token", "token-123");
+    localStorage.setItem("auth_user_name", "Cesar");
     const { result } = renderHook(() => useAuth());
     expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it("hidrata el nombre del usuario desde validate-token cuando falta en localStorage", async () => {
+    localStorage.setItem("auth_token", "token-123");
+    authService.apiValidateToken.mockResolvedValue({
+      valid: true,
+      user: { name: "Cesar" },
+    });
+
+    const { result } = renderHook(() => useAuth());
+
+    await act(async () => {});
+
+    expect(authService.apiValidateToken).toHaveBeenCalledTimes(1);
+    expect(result.current.userName).toBe("Cesar");
+    expect(localStorage.getItem("auth_user_name")).toBe("Cesar");
   });
 
   it("login exitoso actualiza el estado", async () => {

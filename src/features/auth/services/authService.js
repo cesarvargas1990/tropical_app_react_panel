@@ -1,4 +1,5 @@
 import axios from "axios";
+import api from "../../../shared/services/api";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -20,4 +21,13 @@ export async function apiLogin(email, password) {
   } catch {
     throw new Error("Credenciales incorrectas");
   }
+}
+
+export async function apiValidateToken() {
+  const res = await api.get("/api/validate-token");
+
+  return {
+    valid: Boolean(res.data?.valid),
+    user: res.data?.user ?? null,
+  };
 }

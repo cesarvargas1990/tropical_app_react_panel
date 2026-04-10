@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { apiLogin } from "../services/authService";
+import { useState, useCallback, useEffect } from "react";
+import { apiLogin, apiValidateToken } from "../services/authService";
 
 /**
  * Hook personalizado para manejar autenticación
@@ -14,6 +14,51 @@ export function useAuth() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+
+    if (!token) {
+      return;
+    }
+
+    const storedUserName = (localStorage.getItem("auth_user_name") ?? "").trim();
+
+    if (storedUserName) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void apiValidateToken()
+      .then(({ valid, user }) => {
+        if (cancelled || !valid) {
+          return;
+        }
+
+        const resolvedUserName = String(
+          user?.name ?? user?.email ?? user?.username ?? "",
+        ).trim();
+
+        localStorage.setItem("auth_user_name", resolvedUserName);
+        setUserName(resolvedUserName);
+        setIsAuthenticated(true);
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("auth_user_name");
+        setUserName("");
+        setIsAuthenticated(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const login = useCallback(async (email, password) => {
     setIsLoading(true);

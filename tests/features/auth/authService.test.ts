@@ -1,12 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
-import { apiLogin } from "../../../src/features/auth/services/authService";
+import api from "../../../src/shared/services/api";
+import {
+  apiLogin,
+  apiValidateToken,
+} from "../../../src/features/auth/services/authService";
 
 // Mock de axios COMPLETO (no hace llamadas reales)
 vi.mock("axios");
+vi.mock("../../../src/shared/services/api", () => ({
+  default: {
+    get: vi.fn(),
+  },
+}));
 
 const mockedAxios = axios as unknown as {
   post: ReturnType<typeof vi.fn>;
+};
+const mockedApi = api as unknown as {
+  get: ReturnType<typeof vi.fn>;
 };
 
 describe("authService - apiLogin", () => {
@@ -61,5 +73,27 @@ describe("authService - apiLogin", () => {
     await expect(apiLogin("test@mail.com", "bad-password")).rejects.toThrow(
       "Credenciales incorrectas",
     );
+  });
+
+  it("retorna usuario al validar token", async () => {
+    mockedApi.get = vi.fn().mockResolvedValue({
+      data: {
+        valid: true,
+        user: {
+          id: 7,
+          name: "Cesar",
+        },
+      },
+    });
+
+    await expect(apiValidateToken()).resolves.toEqual({
+      valid: true,
+      user: {
+        id: 7,
+        name: "Cesar",
+      },
+    });
+
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/validate-token");
   });
 });
