@@ -31,7 +31,9 @@ export function Login({ onLoginSuccess }) {
     <div className="login-container">
       <div className="login-box">
         <h2 className="login-title">Iniciar sesión</h2>
-        <div className="login-version">v {import.meta.env.VITE_APP_VERSION}</div>
+        <div className="login-version">
+          v {import.meta.env.VITE_APP_VERSION}
+        </div>
 
         <form onSubmit={handleSubmit}>
           <input
