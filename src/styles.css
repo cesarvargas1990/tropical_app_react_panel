@@ -953,6 +953,13 @@ body {
   text-align: center;
   font-size: 28px;
   color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.login-version {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
   margin-bottom: 25px;
 }
 
