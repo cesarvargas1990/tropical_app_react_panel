@@ -1,6 +1,23 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 
+const AUTH_TOKEN_KEY = "auth_token";
+const AUTH_USER_NAME_KEY = "auth_user_name";
+
+function getStoredToken() {
+  return (
+    localStorage.getItem(AUTH_TOKEN_KEY) ??
+    sessionStorage.getItem(AUTH_TOKEN_KEY)
+  );
+}
+
+function clearStoredAuth() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_NAME_KEY);
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  sessionStorage.removeItem(AUTH_USER_NAME_KEY);
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   headers: {
@@ -9,12 +26,8 @@ const api = axios.create({
   },
 });
 
-/* ================================
-      INTERCEPTOR REQUEST
-   AGREGA TOKEN DE LOCALSTORAGE
-================================ */
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("auth_token");
+  const token = getStoredToken();
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -23,24 +36,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-/* =========================================
-   INTERCEPTOR RESPONSE
-   CAPTURA 401 → TOKEN EXPIRADO
-========================================= */
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const status = error?.response?.status;
 
-    // Token expirado / inválido
     if (status === 401) {
       console.warn("⚠ Sesión expirada o token inválido.");
 
-      // borrar token viejo
-      localStorage.removeItem("auth_token");
-
-      // mensaje visual
-      //alert("Tu sesión expiró. Inicia sesión nuevamente.");
+      clearStoredAuth();
 
       const result = await Swal.fire({
         title: "Sesión expirada",
@@ -59,12 +63,8 @@ api.interceptors.response.use(
       if (result.isConfirmed) {
         window.location.href = "/login";
       }
-
-      // redirección al login
-      //window.location.href = "/login";
     }
 
-    // log controlado
     console.error("API ERROR:", error.response || error);
 
     return Promise.reject(error);

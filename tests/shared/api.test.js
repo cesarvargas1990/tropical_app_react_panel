@@ -1,10 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// --- refs singleton para capturar interceptors ---
 const requestUse = vi.fn();
 const responseUse = vi.fn();
 
-// Mock axios COMPLETO: cero llamadas reales
 vi.mock("axios", () => {
   return {
     default: {
@@ -18,7 +16,6 @@ vi.mock("axios", () => {
   };
 });
 
-// Mock SweetAlert (sin implementación fija)
 vi.mock("sweetalert2", () => ({
   default: {
     fire: vi.fn(),
@@ -32,33 +29,34 @@ describe("api axios instance", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    vi.resetModules(); // ✅ CRÍTICO: fuerza a que ./api se vuelva a ejecutar
+    vi.resetModules();
 
-    // mock localStorage (incluye setItem para que no explote)
     globalThis.localStorage = {
       getItem: vi.fn(),
       setItem: vi.fn(),
       removeItem: vi.fn(),
     };
 
-    // mock window.location (read-only en JSDOM)
+    globalThis.sessionStorage = {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    };
+
     Object.defineProperty(window, "location", {
       value: { href: "" },
       writable: true,
       configurable: true,
     });
 
-    // ✅ importar DESPUÉS del resetModules (esto registra interceptors)
     await import("../../src/shared/services/api.js");
 
-    // capturar interceptores registrados
     expect(requestUse).toHaveBeenCalledTimes(1);
     expect(responseUse).toHaveBeenCalledTimes(1);
 
     requestInterceptor = requestUse.mock.calls[0][0];
     responseErrorInterceptor = responseUse.mock.calls[0][1];
 
-    // blindar Swal para este test file (por si otros tests lo ensucian)
     const Swal = (await import("sweetalert2")).default;
     Swal.fire.mockReset();
     Swal.getContainer.mockReset();
@@ -67,6 +65,7 @@ describe("api axios instance", () => {
 
   it("NO agrega Authorization header si no hay token", async () => {
     localStorage.getItem.mockReturnValue(null);
+    sessionStorage.getItem.mockReturnValue(null);
 
     const config = { headers: {} };
     const result = requestInterceptor(config);
@@ -74,13 +73,24 @@ describe("api axios instance", () => {
     expect(result.headers.Authorization).toBeUndefined();
   });
 
-  it("agrega Authorization header si existe auth_token", async () => {
+  it("agrega Authorization header si existe auth_token en localStorage", async () => {
     localStorage.getItem.mockReturnValue("token-123");
+    sessionStorage.getItem.mockReturnValue(null);
 
     const config = { headers: {} };
     const result = requestInterceptor(config);
 
     expect(result.headers.Authorization).toBe("Bearer token-123");
+  });
+
+  it("agrega Authorization header si existe auth_token en sessionStorage", async () => {
+    localStorage.getItem.mockReturnValue(null);
+    sessionStorage.getItem.mockReturnValue("token-session");
+
+    const config = { headers: {} };
+    const result = requestInterceptor(config);
+
+    expect(result.headers.Authorization).toBe("Bearer token-session");
   });
 
   it("no hace nada especial para errores != 401", async () => {
@@ -90,11 +100,12 @@ describe("api axios instance", () => {
     await expect(responseErrorInterceptor(error)).rejects.toBe(error);
 
     expect(localStorage.removeItem).not.toHaveBeenCalled();
+    expect(sessionStorage.removeItem).not.toHaveBeenCalled();
     expect(Swal.fire).not.toHaveBeenCalled();
     expect(window.location.href).toBe("");
   });
 
-  it("para status 401 limpia token, muestra alerta y redirige tras confirmar", async () => {
+  it("para status 401 limpia auth en ambos storages, muestra alerta y redirige tras confirmar", async () => {
     const Swal = (await import("sweetalert2")).default;
     const container = { style: {} };
     Swal.getContainer.mockReturnValue(container);
@@ -108,6 +119,9 @@ describe("api axios instance", () => {
     await expect(responseErrorInterceptor(error)).rejects.toBe(error);
 
     expect(localStorage.removeItem).toHaveBeenCalledWith("auth_token");
+    expect(localStorage.removeItem).toHaveBeenCalledWith("auth_user_name");
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith("auth_token");
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith("auth_user_name");
     expect(Swal.fire).toHaveBeenCalledTimes(1);
     expect(Swal.getContainer).toHaveBeenCalled();
     expect(container.style.zIndex).toBe("999999");

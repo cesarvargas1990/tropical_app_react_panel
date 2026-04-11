@@ -6,12 +6,13 @@ import { useAuth } from "../hooks/useAuth";
 export function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const { login, isLoading } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
 
     if (result.success) {
       onLoginSuccess();
@@ -55,6 +56,16 @@ export function Login({ onLoginSuccess }) {
             required
             disabled={isLoading}
           />
+
+          <label className="login-remember">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              disabled={isLoading}
+            />
+            <span>Recordarme</span>
+          </label>
 
           <button className="login-btn" type="submit" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar"}

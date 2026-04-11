@@ -34,6 +34,16 @@ describe("Login", () => {
       writable: true,
       configurable: true,
     });
+
+    Object.defineProperty(window, "sessionStorage", {
+      value: {
+        setItem: vi.fn(),
+        getItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+      writable: true,
+      configurable: true,
+    });
   });
 
   const fillFormAndSubmit = (email = "user@test.com", password = "secret") => {
@@ -53,7 +63,13 @@ describe("Login", () => {
     expect(screen.getByText("v 3.2.1")).toBeInTheDocument();
   });
 
-  it("stores token and calls onLoginSuccess when credentials are valid", async () => {
+  it("shows the remember me checkbox", () => {
+    render(<Login onLoginSuccess={vi.fn()} />);
+
+    expect(screen.getByLabelText("Recordarme")).toBeInTheDocument();
+  });
+
+  it("stores token in localStorage when remember me is checked", async () => {
     apiLogin.mockResolvedValue({
       token: "abc123",
       user: {
@@ -64,6 +80,7 @@ describe("Login", () => {
 
     render(<Login onLoginSuccess={onLoginSuccess} />);
 
+    fireEvent.click(screen.getByLabelText("Recordarme"));
     fillFormAndSubmit();
 
     await waitFor(() => {
@@ -78,8 +95,42 @@ describe("Login", () => {
       "auth_user_name",
       "Cesar",
     );
+    expect(window.sessionStorage.setItem).not.toHaveBeenCalledWith(
+      "auth_token",
+      "abc123",
+    );
     expect(onLoginSuccess).toHaveBeenCalledTimes(1);
     expect(swalFireMock).not.toHaveBeenCalled();
+  });
+
+  it("stores token in sessionStorage when remember me is not checked", async () => {
+    apiLogin.mockResolvedValue({
+      token: "session-123",
+      user: {
+        name: "Ana",
+      },
+    });
+
+    render(<Login onLoginSuccess={vi.fn()} />);
+
+    fillFormAndSubmit("ana@test.com", "secret");
+
+    await waitFor(() => {
+      expect(apiLogin).toHaveBeenCalledWith("ana@test.com", "secret");
+    });
+
+    expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+      "auth_token",
+      "session-123",
+    );
+    expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+      "auth_user_name",
+      "Ana",
+    );
+    expect(window.localStorage.setItem).not.toHaveBeenCalledWith(
+      "auth_token",
+      "session-123",
+    );
   });
 
   it("shows an alert when apiLogin rejects", async () => {
@@ -99,6 +150,7 @@ describe("Login", () => {
     });
 
     expect(window.localStorage.setItem).not.toHaveBeenCalled();
+    expect(window.sessionStorage.setItem).not.toHaveBeenCalled();
     expect(onLoginSuccess).not.toHaveBeenCalled();
   });
 });

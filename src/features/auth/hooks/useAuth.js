@@ -1,29 +1,76 @@
 import { useState, useCallback, useEffect } from "react";
 import { apiLogin, apiValidateToken } from "../services/authService";
 
+const AUTH_TOKEN_KEY = "auth_token";
+const AUTH_USER_NAME_KEY = "auth_user_name";
+
+function getStorageWithToken() {
+  if (localStorage.getItem(AUTH_TOKEN_KEY)) {
+    return localStorage;
+  }
+
+  if (sessionStorage.getItem(AUTH_TOKEN_KEY)) {
+    return sessionStorage;
+  }
+
+  return null;
+}
+
+function getStoredToken() {
+  return (
+    localStorage.getItem(AUTH_TOKEN_KEY) ??
+    sessionStorage.getItem(AUTH_TOKEN_KEY) ??
+    ""
+  );
+}
+
+function getStoredUserName() {
+  return (
+    localStorage.getItem(AUTH_USER_NAME_KEY) ??
+    sessionStorage.getItem(AUTH_USER_NAME_KEY) ??
+    ""
+  );
+}
+
+function clearAuthStorage() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_NAME_KEY);
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  sessionStorage.removeItem(AUTH_USER_NAME_KEY);
+}
+
+function persistAuth(token, userName, rememberMe) {
+  const targetStorage = rememberMe ? localStorage : sessionStorage;
+  const staleStorage = rememberMe ? sessionStorage : localStorage;
+
+  staleStorage.removeItem(AUTH_TOKEN_KEY);
+  staleStorage.removeItem(AUTH_USER_NAME_KEY);
+  targetStorage.setItem(AUTH_TOKEN_KEY, token);
+  targetStorage.setItem(AUTH_USER_NAME_KEY, userName);
+}
+
 /**
  * Hook personalizado para manejar autenticación
  * Encapsula toda la lógica de login, logout y estado de autenticación
  */
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!localStorage.getItem("auth_token"),
+    () => !!getStoredToken(),
   );
-  const [userName, setUserName] = useState(
-    () => localStorage.getItem("auth_user_name") ?? "",
-  );
+  const [userName, setUserName] = useState(() => getStoredUserName());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    const storage = getStorageWithToken();
+    const token = storage?.getItem(AUTH_TOKEN_KEY) ?? "";
 
     if (!token) {
       return;
     }
 
-    const storedUserName = (
-      localStorage.getItem("auth_user_name") ?? ""
+    const storedUserName = String(
+      storage?.getItem(AUTH_USER_NAME_KEY) ?? "",
     ).trim();
 
     if (storedUserName) {
@@ -42,7 +89,7 @@ export function useAuth() {
           user?.name ?? user?.email ?? user?.username ?? "",
         ).trim();
 
-        localStorage.setItem("auth_user_name", resolvedUserName);
+        storage?.setItem(AUTH_USER_NAME_KEY, resolvedUserName);
         setUserName(resolvedUserName);
         setIsAuthenticated(true);
       })
@@ -51,8 +98,7 @@ export function useAuth() {
           return;
         }
 
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user_name");
+        clearAuthStorage();
         setUserName("");
         setIsAuthenticated(false);
       });
@@ -62,7 +108,7 @@ export function useAuth() {
     };
   }, []);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email, password, rememberMe = false) => {
     setIsLoading(true);
     setError(null);
 
@@ -72,8 +118,7 @@ export function useAuth() {
         user?.name ?? user?.email ?? user?.username ?? "",
       ).trim();
 
-      localStorage.setItem("auth_token", token);
-      localStorage.setItem("auth_user_name", resolvedUserName);
+      persistAuth(token, resolvedUserName, rememberMe);
       setUserName(resolvedUserName);
       setIsAuthenticated(true);
       return { success: true, token, user };
@@ -87,8 +132,7 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user_name");
+    clearAuthStorage();
     setUserName("");
     setIsAuthenticated(false);
   }, []);

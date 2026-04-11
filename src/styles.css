@@ -930,22 +930,55 @@ body {
 
 /* Fondo general */
 .login-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #0b1220; /* tu fondo oscuro */
+  position: relative;
+  isolation: isolate;
+  background-color: #070812;
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(6, 7, 16, 0.84) 0%,
+      rgba(16, 8, 28, 0.62) 42%,
+      rgba(4, 7, 18, 0.88) 100%
+    ),
+    url("/login-bg.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
   padding: 20px;
+  overflow: hidden;
+}
+
+.login-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(32, 85, 215, 0.18),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(255, 26, 94, 0.22),
+      transparent 30%
+    );
 }
 
 /* Tarjeta del login */
 .login-box {
-  width: 380px;
+  width: min(100%, 380px);
   padding: 40px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.35);
+  background: rgba(8, 12, 24, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
 }
 
 /* Título */
@@ -982,6 +1015,21 @@ body {
   box-shadow: 0 0 8px rgba(99, 102, 241, 0.45);
 }
 
+.login-remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 18px;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.login-remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: #3b82f6;
+}
+
 /* Botón */
 .login-btn {
   width: 100%;
@@ -1000,6 +1048,23 @@ body {
 .login-btn:hover {
   transform: scale(1.05);
   box-shadow: 0 0 25px rgba(168, 85, 247, 0.45);
+}
+
+@media (max-width: 640px) {
+  .login-container {
+    padding: 18px;
+    align-items: flex-end;
+  }
+
+  .login-box {
+    width: 100%;
+    padding: 28px 22px;
+    border-radius: 18px;
+  }
+
+  .login-title {
+    font-size: 24px;
+  }
 }
 
 .cart-backdrop {
