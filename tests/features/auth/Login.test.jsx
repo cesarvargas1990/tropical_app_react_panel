@@ -22,6 +22,7 @@ vi.mock("sweetalert2", () => ({
 describe("Login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("VITE_APP_VERSION", "3.2.1");
     swalFireMock.mockReset();
 
     Object.defineProperty(window, "localStorage", {
@@ -44,6 +45,13 @@ describe("Login", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /Entrar/i }));
   };
+
+  it("shows app version below the login title", () => {
+    render(<Login onLoginSuccess={vi.fn()} />);
+
+    expect(screen.getByText("Iniciar sesión")).toBeInTheDocument();
+    expect(screen.getByText("v 3.2.1")).toBeInTheDocument();
+  });
 
   it("stores token and calls onLoginSuccess when credentials are valid", async () => {
     apiLogin.mockResolvedValue({
