@@ -1,14 +1,35 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { getLatestSales } from "../services/salesService";
+import { getSalesEventName } from "../services/offlineSalesStore";
 
 export function RecentSalesModal({ onClose }) {
   const [sales, setSales] = useState([]);
 
   useEffect(() => {
-    getLatestSales()
-      .then((data) => setSales(data))
-      .catch((err) => console.error("Error cargando ventas:", err));
+    let mounted = true;
+
+    const loadSales = () => {
+      getLatestSales()
+        .then((data) => {
+          if (mounted) {
+            setSales(data);
+          }
+        })
+        .catch((err) => console.error("Error cargando ventas:", err));
+    };
+
+    loadSales();
+
+    const salesEventName = getSalesEventName();
+    window.addEventListener("online", loadSales);
+    window.addEventListener(salesEventName, loadSales);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("online", loadSales);
+      window.removeEventListener(salesEventName, loadSales);
+    };
   }, []);
 
   return (
@@ -32,13 +53,19 @@ export function RecentSalesModal({ onClose }) {
             </thead>
             <tbody>
               {sales.map((sale) => (
-                <tr key={sale.id}>
+                <tr
+                  key={sale.id}
+                  className={sale.__unsynced ? "recent-row-pending" : undefined}
+                >
                   <td>{sale.machine}</td>
                   <td>{sale.flavor}</td>
                   <td>{sale.feature}</td>
                   <td>{sale.size}</td>
                   <td className="recent-link">{sale.quantity}</td>
-                  <td>{sale.date}</td>
+                  <td>
+                    {sale.date}
+                    {sale.__unsynced ? " • Pendiente" : ""}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -8,6 +8,13 @@ import {
   scanCartItem,
 } from "../services/cartService";
 import { getDeviceId } from "../../../shared/services/deviceId";
+import {
+  isNavigatorOnline,
+  isNetworkError,
+  readJsonStorage,
+  removeStorageKey,
+  writeJsonStorage,
+} from "../../../shared/services/localStorage";
 
 /**
  * Hook principal para manejar todo el flujo del carrito
@@ -16,6 +23,14 @@ import { getDeviceId } from "../../../shared/services/deviceId";
 
 let sharedAudioCtx = null;
 let optimisticItemCounter = 0;
+
+function getDraftStorageKey(deviceId) {
+  return `tropical.cart.draft.${deviceId}`;
+}
+
+function isLocalOnlyItem(item) {
+  return Boolean(item?.__localOnly);
+}
 
 export function useCartFlow({
   originalProducts,
@@ -35,6 +50,7 @@ export function useCartFlow({
   const syncPromiseRef = useRef(null);
   const pendingOptimisticItemsRef = useRef(new Map());
   const cartVersionRef = useRef(0);
+  const localDraftActiveRef = useRef(false);
 
   const showCartError = useCallback(async (error, fallbackMessage) => {
     const Swal = (await import("sweetalert2")).default;
@@ -48,6 +64,51 @@ export function useCartFlow({
       },
     });
   }, []);
+
+  const persistLocalDraft = useCallback(
+    (items) => {
+      const storageKey = getDraftStorageKey(deviceId);
+      const cleanItems = (items ?? []).map((item) => ({
+        ...item,
+        __localOnly: true,
+      }));
+
+      if (!cleanItems.length) {
+        removeStorageKey(storageKey);
+        localDraftActiveRef.current = false;
+        return;
+      }
+
+      writeJsonStorage(storageKey, {
+        items: cleanItems,
+        updatedAt: new Date().toISOString(),
+      });
+      localDraftActiveRef.current = true;
+    },
+    [deviceId],
+  );
+
+  const clearLocalDraft = useCallback(() => {
+    removeStorageKey(getDraftStorageKey(deviceId));
+    localDraftActiveRef.current = false;
+  }, [deviceId]);
+
+  const setLocalDraftItems = useCallback(
+    (updater) => {
+      setCartItems((prev) => {
+        const next =
+          typeof updater === "function"
+            ? updater(prev)
+            : Array.isArray(updater)
+              ? updater
+              : prev;
+
+        persistLocalDraft(next);
+        return next;
+      });
+    },
+    [persistLocalDraft],
+  );
 
   const productByMatrixId = useMemo(() => {
     return new Map(
@@ -75,9 +136,37 @@ export function useCartFlow({
     [productByMatrixId],
   );
 
+  const createLocalCartItems = useCallback(
+    (items, source) => {
+      const now = Date.now();
+
+      return items.map((item, index) =>
+        enrichCartItem({
+          ...item,
+          id: `local-${source}-${now}-${index}`,
+          __localOnly: true,
+          source: source ?? item.source ?? "manual",
+        }),
+      );
+    },
+    [enrichCartItem],
+  );
+
   useEffect(() => {
     cartVersionRef.current = Number(cartVersion ?? 0);
   }, [cartVersion]);
+
+  useEffect(() => {
+    const draft = readJsonStorage(getDraftStorageKey(deviceId), null);
+    const draftItems = Array.isArray(draft?.items)
+      ? draft.items.map(enrichCartItem)
+      : [];
+
+    if (draftItems.length) {
+      setCartItems(draftItems);
+      localDraftActiveRef.current = true;
+    }
+  }, [deviceId, enrichCartItem]);
 
   const mergePendingOptimisticItems = useCallback((serverItems) => {
     const pendingItems = Array.from(pendingOptimisticItemsRef.current.values());
@@ -152,6 +241,15 @@ export function useCartFlow({
   );
 
   const syncCart = useCallback(async () => {
+    if (localDraftActiveRef.current || !isNavigatorOnline()) {
+      return {
+        id: cartId,
+        version: cartVersionRef.current,
+        status: cartStatus,
+        items: cartItems,
+      };
+    }
+
     if (syncPromiseRef.current) {
       return syncPromiseRef.current;
     }
@@ -160,12 +258,24 @@ export function useCartFlow({
       .then((serverCart) =>
         hydrateCart(serverCart, { preserveOptimistic: true }),
       )
+      .catch((error) => {
+        if (isNetworkError(error)) {
+          return {
+            id: cartId,
+            version: cartVersionRef.current,
+            status: cartStatus,
+            items: cartItems,
+          };
+        }
+
+        throw error;
+      })
       .finally(() => {
         syncPromiseRef.current = null;
       });
 
     return syncPromiseRef.current;
-  }, [deviceId, hydrateCart]);
+  }, [cartId, cartItems, cartStatus, deviceId, hydrateCart]);
 
   useEffect(() => {
     void syncCart();
@@ -322,14 +432,45 @@ export function useCartFlow({
 
     if (!newItems.length) return false;
 
+    const applyLocalConfirm = () => {
+      const nextLocalItems = createLocalCartItems(newItems, "manual");
+
+      setLocalDraftItems((prev) => {
+        let working = prev;
+        const idsToRemove = (
+          editSourceItemIds.length ? editSourceItemIds : []
+        ).filter(Boolean);
+
+        if (editIndex !== null) {
+          working = prev.filter((item) => !idsToRemove.includes(item.id));
+        }
+
+        return [...working, ...nextLocalItems];
+      });
+
+      setSelectedProduct(null);
+      setSizeState({});
+      setEditIndex(null);
+      setEditSourceItemIds([]);
+      return true;
+    };
+
     try {
       if (editIndex !== null) {
         const itemIds = (
           editSourceItemIds.length ? editSourceItemIds : []
         ).filter(Boolean);
-        if (itemIds.length) {
+        if (
+          itemIds.length &&
+          !localDraftActiveRef.current &&
+          isNavigatorOnline()
+        ) {
           await removeItemIds(itemIds);
         }
+      }
+
+      if (localDraftActiveRef.current || !isNavigatorOnline()) {
+        return applyLocalConfirm();
       }
 
       const serverCart = await addCartItems({
@@ -345,10 +486,15 @@ export function useCartFlow({
       setEditSourceItemIds([]);
       return true;
     } catch (error) {
+      if (isNetworkError(error)) {
+        return applyLocalConfirm();
+      }
+
       await showCartError(error, "No se pudo actualizar el carrito.");
       return false;
     }
   }, [
+    createLocalCartItems,
     resolvedSizes,
     sizeState,
     selectedProduct,
@@ -359,11 +505,27 @@ export function useCartFlow({
     removeItemIds,
     deviceId,
     hydrateCart,
+    setLocalDraftItems,
     showCartError,
   ]);
 
   const removeCartItem = useCallback(
     async (itemId) => {
+      const removeLocal = () => {
+        setLocalDraftItems((prev) => prev.filter((item) => item.id !== itemId));
+        return true;
+      };
+
+      const target = cartItems.find((item) => item.id === itemId);
+
+      if (
+        isLocalOnlyItem(target) ||
+        localDraftActiveRef.current ||
+        !isNavigatorOnline()
+      ) {
+        return removeLocal();
+      }
+
       try {
         const serverCart = await removeCartItemRequest({
           deviceId,
@@ -372,26 +534,45 @@ export function useCartFlow({
         hydrateCart(serverCart);
         return true;
       } catch (error) {
+        if (isNetworkError(error)) {
+          return removeLocal();
+        }
+
         await showCartError(error, "No se pudo eliminar el item del carrito.");
         return false;
       }
     },
-    [deviceId, hydrateCart, showCartError],
+    [cartItems, deviceId, hydrateCart, setLocalDraftItems, showCartError],
   );
 
   const clearCart = useCallback(async () => {
+    const clearLocal = () => {
+      setCartItems([]);
+      clearLocalDraft();
+      return true;
+    };
+
+    if (localDraftActiveRef.current || !isNavigatorOnline()) {
+      return clearLocal();
+    }
+
     try {
       const serverCart = await clearActiveCart({ deviceId });
       hydrateCart(serverCart);
       return true;
     } catch (error) {
+      if (isNetworkError(error)) {
+        return clearLocal();
+      }
+
       await showCartError(error, "No se pudo limpiar el carrito.");
       return false;
     }
-  }, [deviceId, hydrateCart, showCartError]);
+  }, [clearLocalDraft, deviceId, hydrateCart, showCartError]);
 
   const resetCart = useCallback(() => {
     pendingOptimisticItemsRef.current.clear();
+    clearLocalDraft();
     hydrateCart({
       id: cartId,
       device_id: deviceId,
@@ -402,7 +583,7 @@ export function useCartFlow({
       currency_code: "COP",
       items: [],
     });
-  }, [cartId, deviceId, hydrateCart]);
+  }, [cartId, clearLocalDraft, deviceId, hydrateCart]);
 
   const removeGroup = useCallback(
     async (item) => {
@@ -413,14 +594,32 @@ export function useCartFlow({
       }
 
       try {
+        if (
+          localDraftActiveRef.current ||
+          itemIds.some((itemId) => String(itemId).startsWith("local-")) ||
+          !isNavigatorOnline()
+        ) {
+          setLocalDraftItems((prev) =>
+            prev.filter((cartItem) => !itemIds.includes(cartItem.id)),
+          );
+          return true;
+        }
+
         await removeItemIds(itemIds);
         return true;
       } catch (error) {
+        if (isNetworkError(error)) {
+          setLocalDraftItems((prev) =>
+            prev.filter((cartItem) => !itemIds.includes(cartItem.id)),
+          );
+          return true;
+        }
+
         await showCartError(error, "No se pudo eliminar el grupo del carrito.");
         return false;
       }
     },
-    [removeCartItem, removeItemIds, showCartError],
+    [removeCartItem, removeItemIds, setLocalDraftItems, showCartError],
   );
 
   const startEditItem = useCallback(
@@ -464,6 +663,29 @@ export function useCartFlow({
       pendingOptimisticItemsRef.current.set(optimisticItem.id, optimisticItem);
       setCartItems((prev) => [...prev, optimisticItem]);
 
+      const applyLocalDirectItem = () => {
+        pendingOptimisticItemsRef.current.delete(optimisticItem.id);
+        const localItem = {
+          ...optimisticItem,
+          id: `local-direct-${Date.now()}-${optimisticItemCounter}`,
+          __localOnly: true,
+          source: fromSocket ? "scanner" : "direct-access",
+        };
+
+        setLocalDraftItems((prev) =>
+          prev.map((item) =>
+            item.id === optimisticItem.id ? localItem : item,
+          ),
+        );
+
+        if (fromSocket) playBeep();
+        return true;
+      };
+
+      if (localDraftActiveRef.current || !isNavigatorOnline()) {
+        return applyLocalDirectItem();
+      }
+
       try {
         const serverCart = await scanCartItem({
           deviceId,
@@ -475,6 +697,10 @@ export function useCartFlow({
         if (fromSocket) playBeep();
         return true;
       } catch (error) {
+        if (isNetworkError(error)) {
+          return applyLocalDirectItem();
+        }
+
         pendingOptimisticItemsRef.current.delete(optimisticItem.id);
         setCartItems((prev) =>
           prev.filter((item) => item.id !== optimisticItem.id),
@@ -487,6 +713,11 @@ export function useCartFlow({
       }
     },
     [buildOptimisticDirectItem, deviceId, hydrateCart, playBeep, showCartError],
+  );
+
+  const hasLocalOnlyItems = useMemo(
+    () => cartItems.some((item) => isLocalOnlyItem(item)),
+    [cartItems],
   );
 
   return {
@@ -502,6 +733,9 @@ export function useCartFlow({
     editIndex,
     editSourceItemIds,
     cartCount,
+    hasLocalOnlyItems,
+    shouldRegisterWithDirectApi:
+      hasLocalOnlyItems || localDraftActiveRef.current || !isNavigatorOnline(),
 
     // setters/handlers
     setSizes,

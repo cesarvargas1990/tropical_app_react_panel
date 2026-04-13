@@ -6,18 +6,25 @@ import Swal from "sweetalert2";
  */
 export function useSaleRegister({ registerSale }) {
   const register = useCallback(
-    async (cartItems) => {
-      return registerSale(cartItems);
+    async (cartItems, options) => {
+      return registerSale(cartItems, options);
     },
     [registerSale],
   );
 
-  const showSuccess = useCallback(async () => {
+  const showSuccess = useCallback(async (result) => {
+    const isPending = Boolean(result?.pending);
+
     await Swal.fire({
-      title: "Venta registrada con éxito",
-      icon: "success",
+      title: isPending
+        ? "Venta guardada sin conexión"
+        : "Venta registrada con éxito",
+      text: isPending
+        ? "La venta quedó pendiente y se enviará cuando regrese el internet."
+        : undefined,
+      icon: isPending ? "warning" : "success",
       width: 500,
-      timer: 1200,
+      timer: isPending ? 1800 : 1200,
       showConfirmButton: false,
       didOpen: () => {
         const container = Swal.getContainer();

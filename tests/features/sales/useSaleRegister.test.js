@@ -31,7 +31,7 @@ describe("useSaleRegister", () => {
     });
 
     expect(registerSaleMock).toHaveBeenCalledTimes(1);
-    expect(registerSaleMock).toHaveBeenCalledWith([{ id: 1 }]);
+    expect(registerSaleMock).toHaveBeenCalledWith([{ id: 1 }], undefined);
   });
 
   it("muestra la alerta de éxito con SweetAlert", async () => {

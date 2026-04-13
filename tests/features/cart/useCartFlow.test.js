@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 
 import { useCartFlow } from "../../../src/features/cart/hooks/useCartFlow";
 
@@ -60,6 +60,10 @@ describe("useCartFlow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     swalFireMock.mockReset();
+    window.localStorage.clear();
+    vi.stubGlobal("navigator", {
+      onLine: true,
+    });
     getActiveCart.mockResolvedValue({
       id: 10,
       version: 1,
@@ -273,15 +277,13 @@ describe("useCartFlow", () => {
       ],
     });
 
-    let hook;
-    await act(async () => {
-      hook = setup();
-      await Promise.resolve();
-    });
+    const hook = setup();
 
-    expect(getActiveCart).toHaveBeenCalledWith("tablet-test");
-    expect(hook.result.current.cartItems).toHaveLength(1);
-    expect(hook.result.current.cartVersion).toBe(3);
+    await waitFor(() => {
+      expect(getActiveCart).toHaveBeenCalledWith("tablet-test");
+      expect(hook.result.current.cartItems).toHaveLength(1);
+      expect(hook.result.current.cartVersion).toBe(3);
+    });
   });
 
   it("aplica actualizacion optimista al agregar item directo", async () => {
@@ -354,7 +356,12 @@ describe("useCartFlow", () => {
   });
 
   it("revierte la actualizacion optimista si agregar item directo falla", async () => {
-    scanCartItem.mockRejectedValueOnce(new Error("fallo"));
+    scanCartItem.mockRejectedValueOnce({
+      response: {
+        status: 500,
+      },
+      message: "fallo",
+    });
 
     const { result } = setup();
     let ok;
@@ -398,6 +405,9 @@ describe("useCartFlow", () => {
       });
 
     const { result } = setup();
+    await waitFor(() => {
+      expect(getActiveCart).toHaveBeenCalledWith("tablet-test");
+    });
     let promise;
 
     act(() => {
@@ -444,5 +454,36 @@ describe("useCartFlow", () => {
 
     expect(result.current.cartCount).toBe(1);
     expect(result.current.cartItems[0].id).toBe(88);
+  });
+
+  it("guarda acceso directo en borrador local cuando no hay internet", async () => {
+    navigator.onLine = false;
+
+    const { result } = setup();
+    let ok;
+
+    await act(async () => {
+      ok = await result.current.addItemDirect({
+        productMatrixId: 33,
+        sabor: "Mango",
+        caracteristica: "Clasico",
+        tamano: "L",
+        valor: 5000,
+      });
+    });
+
+    expect(ok).toBe(true);
+    expect(scanCartItem).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(result.current.hasLocalOnlyItems).toBe(true);
+      expect(result.current.shouldRegisterWithDirectApi).toBe(true);
+      expect(result.current.cartItems[0]).toEqual(
+        expect.objectContaining({
+          __localOnly: true,
+          quantity: 1,
+          unitPrice: 5000,
+        }),
+      );
+    });
   });
 });

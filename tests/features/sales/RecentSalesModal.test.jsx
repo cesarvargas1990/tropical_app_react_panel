@@ -4,9 +4,14 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 
 import { RecentSalesModal } from "../../../src/features/sales/components/RecentSalesModal";
 import { getLatestSales } from "../../../src/features/sales/services/salesService";
+import { getSalesEventName } from "../../../src/features/sales/services/offlineSalesStore";
 
 vi.mock("../../../src/features/sales/services/salesService", () => ({
   getLatestSales: vi.fn(),
+}));
+
+vi.mock("../../../src/features/sales/services/offlineSalesStore", () => ({
+  getSalesEventName: vi.fn(() => "tropical-offline-sales-updated"),
 }));
 
 describe("RecentSalesModal", () => {
@@ -33,6 +38,7 @@ describe("RecentSalesModal", () => {
     render(<RecentSalesModal onClose={onClose} />);
 
     expect(getLatestSales).toHaveBeenCalledTimes(1);
+    expect(getSalesEventName).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.getByText("A1")).toBeInTheDocument();
@@ -58,5 +64,26 @@ describe("RecentSalesModal", () => {
     });
 
     consoleSpy.mockRestore();
+  });
+
+  it("marca en pantalla las ventas pendientes por sincronizar", async () => {
+    getLatestSales.mockResolvedValue([
+      {
+        id: "pending-1",
+        machine: "A3",
+        flavor: "Fresa",
+        feature: "",
+        size: "M",
+        quantity: 1,
+        date: "13/04/2026 08:20 AM",
+        __unsynced: true,
+      },
+    ]);
+
+    render(<RecentSalesModal onClose={vi.fn()} />);
+
+    const pendingText = await screen.findByText(/Pendiente/i);
+    expect(pendingText).toBeInTheDocument();
+    expect(pendingText.closest("tr")).toHaveClass("recent-row-pending");
   });
 });

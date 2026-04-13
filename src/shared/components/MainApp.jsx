@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 
 // Features imports
 import {
@@ -13,6 +14,7 @@ import { CartModal, SizeModal, useCartFlow } from "../../features/cart";
 import {
   RecentSalesModal,
   registerSale,
+  syncPendingSales,
   useSaleRegister,
 } from "../../features/sales";
 
@@ -90,6 +92,23 @@ function MainApp({ userName = "" }) {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncOfflineSales = async () => {
+      try {
+        await syncPendingSales();
+      } catch (error) {
+        console.warn("No se pudieron sincronizar ventas pendientes", error);
+      }
+    };
+
+    void syncOfflineSales();
+    window.addEventListener("online", syncOfflineSales);
+
+    return () => {
+      window.removeEventListener("online", syncOfflineSales);
     };
   }, []);
 
@@ -410,5 +429,9 @@ function MainApp({ userName = "" }) {
     </div>
   );
 }
+
+MainApp.propTypes = {
+  userName: PropTypes.string,
+};
 
 export default MainApp;

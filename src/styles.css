@@ -914,6 +914,15 @@ body {
   background: #030712;
 }
 
+.recent-table tr.recent-row-pending td {
+  background: rgba(127, 29, 29, 0.34);
+  color: #fecaca;
+}
+
+.recent-table tr.recent-row-pending .recent-link {
+  color: #fca5a5;
+}
+
 .recent-link {
   color: #38bdf8;
   font-weight: 600;

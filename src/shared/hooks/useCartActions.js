@@ -6,11 +6,20 @@ import { useCallback } from "react";
 export function useCartActions({ cart, register, closeCart, showSaleSuccess }) {
   const handleRegisterSale = useCallback(async () => {
     try {
-      await register(cart.groupedItems);
+      const result = await register(cart.groupedItems, {
+        deviceId: cart.deviceId,
+        hasLocalOnlyItems: cart.hasLocalOnlyItems,
+        forceDirectApi: cart.shouldRegisterWithDirectApi,
+      });
+
       cart.resetCart?.();
-      await cart.syncCart?.();
+
+      if (result?.shouldSyncCart) {
+        await cart.syncCart?.();
+      }
+
       closeCart();
-      await showSaleSuccess?.();
+      await showSaleSuccess?.(result);
       return true;
     } catch (error) {
       const Swal = (await import("sweetalert2")).default;
