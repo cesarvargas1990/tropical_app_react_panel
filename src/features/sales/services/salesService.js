@@ -26,11 +26,13 @@ export async function getLatestSales() {
     );
     return readCachedLatestSales();
   } catch (error) {
+    if (!isNavigatorOnline() || isNetworkError(error)) {
+      return readCachedLatestSales();
+    }
+
     if (!isNetworkError(error)) {
       throw error;
     }
-
-    return readCachedLatestSales();
   }
 }
 

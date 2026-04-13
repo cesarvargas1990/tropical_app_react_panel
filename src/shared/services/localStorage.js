@@ -53,7 +53,23 @@ export function isNetworkError(error) {
     return false;
   }
 
-  if (error.code === "ERR_NETWORK" || error.message === "Network Error") {
+  const status = error?.response?.status;
+  const message = String(error?.message ?? "").toLowerCase();
+  const code = String(error?.code ?? "").toUpperCase();
+
+  if (status === 0) {
+    return true;
+  }
+
+  if (
+    code === "ERR_NETWORK" ||
+    code === "ERR_INTERNET_DISCONNECTED" ||
+    message === "network error" ||
+    message.includes("failed to fetch") ||
+    message.includes("load failed") ||
+    message.includes("networkerror") ||
+    message.includes("internet disconnected")
+  ) {
     return true;
   }
 

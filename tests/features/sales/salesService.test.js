@@ -88,6 +88,21 @@ describe("salesService", () => {
       expect(result).toEqual(cachedSales);
     });
 
+    it("retorna cache local si el navegador ya esta offline aunque el error no tenga forma de red", async () => {
+      const cachedSales = [{ id: "cached-2", machine: "A2" }];
+      navigator.onLine = false;
+      api.get.mockRejectedValueOnce({
+        response: {
+          status: 503,
+        },
+      });
+      readCachedLatestSales.mockReturnValueOnce(cachedSales);
+
+      const result = await getLatestSales();
+
+      expect(result).toEqual(cachedSales);
+    });
+
     it("relanza errores no asociados a red", async () => {
       api.get.mockRejectedValueOnce({
         response: {
