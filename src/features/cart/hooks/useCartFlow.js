@@ -51,6 +51,11 @@ export function useCartFlow({
   const pendingOptimisticItemsRef = useRef(new Map());
   const cartVersionRef = useRef(0);
   const localDraftActiveRef = useRef(false);
+  const cartSnapshotRef = useRef({
+    id: null,
+    status: "active",
+    items: [],
+  });
 
   const showCartError = useCallback(async (error, fallbackMessage) => {
     const Swal = (await import("sweetalert2")).default;
@@ -157,6 +162,14 @@ export function useCartFlow({
   }, [cartVersion]);
 
   useEffect(() => {
+    cartSnapshotRef.current = {
+      id: cartId,
+      status: cartStatus,
+      items: cartItems,
+    };
+  }, [cartId, cartItems, cartStatus]);
+
+  useEffect(() => {
     const draft = readJsonStorage(getDraftStorageKey(deviceId), null);
     const draftItems = Array.isArray(draft?.items)
       ? draft.items.map(enrichCartItem)
@@ -243,10 +256,10 @@ export function useCartFlow({
   const syncCart = useCallback(async () => {
     if (localDraftActiveRef.current || !isNavigatorOnline()) {
       return {
-        id: cartId,
+        id: cartSnapshotRef.current.id,
         version: cartVersionRef.current,
-        status: cartStatus,
-        items: cartItems,
+        status: cartSnapshotRef.current.status,
+        items: cartSnapshotRef.current.items,
       };
     }
 
@@ -261,10 +274,10 @@ export function useCartFlow({
       .catch((error) => {
         if (isNetworkError(error)) {
           return {
-            id: cartId,
+            id: cartSnapshotRef.current.id,
             version: cartVersionRef.current,
-            status: cartStatus,
-            items: cartItems,
+            status: cartSnapshotRef.current.status,
+            items: cartSnapshotRef.current.items,
           };
         }
 
@@ -275,7 +288,7 @@ export function useCartFlow({
       });
 
     return syncPromiseRef.current;
-  }, [cartId, cartItems, cartStatus, deviceId, hydrateCart]);
+  }, [deviceId, hydrateCart]);
 
   useEffect(() => {
     void syncCart();

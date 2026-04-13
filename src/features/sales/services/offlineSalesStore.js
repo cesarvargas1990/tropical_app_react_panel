@@ -10,6 +10,7 @@ const PENDING_SALES_KEY = "tropical.pendingSales.queue.v1";
 const SALES_EVENT_NAME = "tropical-offline-sales-updated";
 const MAX_LATEST_SALES = 30;
 const SALES_TIME_ZONE = "America/Bogota";
+let syncPendingSalesPromise = null;
 
 function dispatchSalesUpdate() {
   if (typeof window === "undefined") {
@@ -306,51 +307,61 @@ export async function registerSaleDirect(items) {
 }
 
 export async function syncPendingSales() {
-  const queue = getPendingSales();
-
-  if (!queue.length) {
-    return { synced: 0, remaining: 0 };
+  if (syncPendingSalesPromise) {
+    return syncPendingSalesPromise;
   }
 
-  let synced = 0;
-  const syncedSales = [];
-  const remaining = [];
+  syncPendingSalesPromise = (async () => {
+    const queue = getPendingSales();
 
-  for (const sale of queue) {
-    try {
-      await registerSaleDirect(sale.items ?? []);
-      synced += 1;
-      syncedSales.push(sale);
-    } catch {
-      remaining.push(sale);
+    if (!queue.length) {
+      return { synced: 0, remaining: 0 };
     }
-  }
 
-  if (remaining.length) {
-    setPendingSales(remaining);
-  } else {
-    removeStorageKey(PENDING_SALES_KEY);
-    dispatchSalesUpdate();
-  }
+    let synced = 0;
+    const syncedSales = [];
+    const remaining = [];
 
-  if (syncedSales.length) {
-    const syncedAt = new Date();
-    const syncedRows = toPendingRows(syncedSales, {
-      unsynced: false,
-      date: formatSaleDate(syncedAt),
-      sortDate: syncedAt.toISOString(),
-    });
+    for (const sale of queue) {
+      try {
+        await registerSaleDirect(sale.items ?? []);
+        synced += 1;
+        syncedSales.push(sale);
+      } catch {
+        remaining.push(sale);
+      }
+    }
 
-    replaceLocalRows(
-      syncedSales.map((sale) => sale.id),
-      syncedRows,
-    );
-  }
+    if (remaining.length) {
+      setPendingSales(remaining);
+    } else {
+      removeStorageKey(PENDING_SALES_KEY);
+      dispatchSalesUpdate();
+    }
 
-  return {
-    synced,
-    remaining: remaining.length,
-  };
+    if (syncedSales.length) {
+      const syncedAt = new Date();
+      const syncedRows = toPendingRows(syncedSales, {
+        unsynced: false,
+        date: formatSaleDate(syncedAt),
+        sortDate: syncedAt.toISOString(),
+      });
+
+      replaceLocalRows(
+        syncedSales.map((sale) => sale.id),
+        syncedRows,
+      );
+    }
+
+    return {
+      synced,
+      remaining: remaining.length,
+    };
+  })().finally(() => {
+    syncPendingSalesPromise = null;
+  });
+
+  return syncPendingSalesPromise;
 }
 
 export function getSalesEventName() {
