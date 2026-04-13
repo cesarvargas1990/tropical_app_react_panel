@@ -48,7 +48,22 @@ function normalizeDate(value) {
     return formatSaleDate(new Date());
   }
 
-  return String(value);
+  if (value instanceof Date) {
+    return formatSaleDate(value);
+  }
+
+  const raw = String(value).trim();
+
+  if (/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})\s+(AM|PM)$/i.test(raw)) {
+    return raw;
+  }
+
+  const nativeValue = Date.parse(raw);
+  if (!Number.isNaN(nativeValue)) {
+    return formatSaleDate(raw);
+  }
+
+  return raw;
 }
 
 function parseSaleDate(value) {
@@ -111,6 +126,26 @@ function getLatestSalesCache() {
 
 function setLatestSalesCache(sales) {
   writeJsonStorage(LATEST_SALES_CACHE_KEY, sales.slice(0, MAX_LATEST_SALES));
+}
+
+function normalizeVisibleSaleRow(row) {
+  const normalized = {
+    ...row,
+    quantity: normalizeQuantity(row?.quantity),
+    date: normalizeDate(row?.date ?? row?.__sortDate ?? ""),
+  };
+
+  const sortSource = row?.__sortDate ?? row?.date ?? "";
+  normalized.__sortDate =
+    sortSource instanceof Date || !Number.isNaN(Date.parse(String(sortSource)))
+      ? new Date(sortSource).toISOString()
+      : sortSource;
+
+  normalized.__unsynced = row?.__unsynced === true;
+  normalized.__offline =
+    row?.__offline === true || Number(row?.offline ?? 0) === 1;
+
+  return normalized;
 }
 
 function formatSaleDate(value) {
@@ -195,17 +230,20 @@ function sortSalesDesc(rows) {
 }
 
 function mergeVisibleSales(serverSales = [], localRows = []) {
-  const normalizedServerRows = Array.isArray(serverSales) ? serverSales : [];
-  const serverKeys = new Set(normalizedServerRows.map(saleRowIdentity));
-  const preservedLocalRows = (Array.isArray(localRows) ? localRows : []).filter(
-    (row) => {
-      if (row.__unsynced) {
-        return true;
-      }
-
-      return !serverKeys.has(saleRowIdentity(row));
-    },
+  const normalizedServerRows = (
+    Array.isArray(serverSales) ? serverSales : []
+  ).map(normalizeVisibleSaleRow);
+  const normalizedLocalRows = (Array.isArray(localRows) ? localRows : []).map(
+    normalizeVisibleSaleRow,
   );
+  const serverKeys = new Set(normalizedServerRows.map(saleRowIdentity));
+  const preservedLocalRows = normalizedLocalRows.filter((row) => {
+    if (row.__unsynced) {
+      return true;
+    }
+
+    return !serverKeys.has(saleRowIdentity(row));
+  });
 
   return sortSalesDesc([...preservedLocalRows, ...normalizedServerRows]).slice(
     0,
@@ -232,7 +270,13 @@ export function cacheLatestSales(sales) {
 }
 
 export function readCachedLatestSales() {
-  return getLatestSalesCache();
+  const cachedRows = getLatestSalesCache()
+    .map(normalizeVisibleSaleRow)
+    .filter((row) => !row.__unsynced);
+
+  return mergeSalesWithPending(cachedRows, getPendingSales()).map(
+    normalizeVisibleSaleRow,
+  );
 }
 
 export function mergeSalesWithPending(
@@ -242,17 +286,17 @@ export function mergeSalesWithPending(
   const pendingRows = toPendingRows(pendingSales);
   const used = new Set(pendingRows.map(saleRowIdentity));
 
-  const mergedServerRows = (
-    Array.isArray(serverSales) ? serverSales : []
-  ).filter((row) => {
-    const key = saleRowIdentity(row);
-    if (used.has(key)) {
-      used.delete(key);
-      return false;
-    }
+  const mergedServerRows = (Array.isArray(serverSales) ? serverSales : [])
+    .map(normalizeVisibleSaleRow)
+    .filter((row) => {
+      const key = saleRowIdentity(row);
+      if (used.has(key)) {
+        used.delete(key);
+        return false;
+      }
 
-    return true;
-  });
+      return true;
+    });
 
   return [...pendingRows, ...mergedServerRows].slice(0, MAX_LATEST_SALES);
 }

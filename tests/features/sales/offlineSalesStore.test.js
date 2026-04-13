@@ -177,7 +177,40 @@ describe("offlineSalesStore", () => {
         flavor: "Maracuya",
         __unsynced: false,
         __offline: false,
+        date: expect.stringMatching(
+          /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}\s+(AM|PM)$/,
+        ),
       }),
+    );
+  });
+
+  it("reconstruye las ventas pendientes desde la cola aunque el cache visible este vacio", () => {
+    queuePendingSale([
+      {
+        productMatrixId: 31,
+        quantity: 1,
+        unitPrice: 4000,
+        subtotal: 4000,
+        flavor: "Mora",
+        feature: "Frozen",
+        sizeLabel: "M",
+        machineName: "Tanque 9",
+      },
+    ]);
+
+    window.localStorage.removeItem("tropical.latestSales.cache.v1");
+
+    const sales = readCachedLatestSales();
+
+    expect(sales).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          machine: "Tanque 9",
+          flavor: "Mora",
+          __unsynced: true,
+          __offline: true,
+        }),
+      ]),
     );
   });
 
