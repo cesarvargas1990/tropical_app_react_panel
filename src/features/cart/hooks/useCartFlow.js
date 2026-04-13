@@ -8,6 +8,7 @@ import {
   scanCartItem,
 } from "../services/cartService";
 import { getDeviceId } from "../../../shared/services/deviceId";
+import { parseProductNameParts } from "../../../shared/utils/productName";
 import {
   isNavigatorOnline,
   isNetworkError,
@@ -127,16 +128,17 @@ export function useCartFlow({
   const enrichCartItem = useCallback(
     (item) => {
       const match = productByMatrixId.get(String(item.productMatrixId ?? ""));
+      const parsedProductName = parseProductNameParts(item.productName);
       const flavor =
         item.flavor ??
         item.baseName ??
         match?.sabor ??
-        item.productName?.split(" (")[0] ??
+        parsedProductName.flavor ??
         "Producto";
       const feature =
         item.feature ??
         match?.caracteristica ??
-        item.productName?.match(/\((.*?)\)/)?.[1] ??
+        parsedProductName.feature ??
         "";
       const machineId = item.machineId ?? match?.machineId ?? null;
       const machineName =
@@ -665,11 +667,11 @@ export function useCartFlow({
 
   const startEditItem = useCallback(
     (item, index) => {
+      const parsedProductName = parseProductNameParts(item.productName);
       const product =
         productByMatrixId.get(String(item.productMatrixId ?? "")) ??
         products.find(
-          (p) =>
-            p.name === (item.productName?.split(" (")[0] ?? item.productName),
+          (p) => p.name === (parsedProductName.flavor || item.productName),
         );
       if (!product) return { ok: false };
 

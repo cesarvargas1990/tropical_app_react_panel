@@ -1,5 +1,6 @@
 import api from "../../../shared/services/api";
 import { clearActiveCart } from "../../cart/services/cartService";
+import { parseProductNameParts } from "../../../shared/utils/productName";
 import {
   readJsonStorage,
   removeStorageKey,
@@ -210,12 +211,11 @@ function saleRowIdentity(row) {
 }
 
 function extractFlavorFeatureFromProductName(value) {
-  const raw = String(value ?? "").trim();
-  const match = raw.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+  const { flavor, feature } = parseProductNameParts(value);
 
   return {
-    flavor: String(match?.[1] ?? raw).trim(),
-    feature: String(match?.[2] ?? "").trim(),
+    flavor: String(flavor || value || "").trim(),
+    feature: String(feature ?? "").trim(),
   };
 }
 
