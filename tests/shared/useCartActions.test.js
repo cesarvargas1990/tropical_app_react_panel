@@ -17,7 +17,9 @@ describe("useCartActions", () => {
       cartItems: [{ id: 1 }],
     };
 
-    const mockRegister = vi.fn().mockResolvedValue(true);
+    const mockRegister = vi.fn().mockResolvedValue({
+      shouldSyncCart: true,
+    });
     const mockCloseCart = vi.fn();
     const mockShowSaleSuccess = vi.fn().mockResolvedValue(undefined);
 
@@ -32,7 +34,11 @@ describe("useCartActions", () => {
 
     const ok = await result.current.handleRegisterSale();
 
-    expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
+    expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems, {
+      deviceId: undefined,
+      hasLocalOnlyItems: undefined,
+      forceDirectApi: undefined,
+    });
     expect(mockCart.resetCart).toHaveBeenCalled();
     expect(mockCart.syncCart).toHaveBeenCalled();
     expect(mockCloseCart).toHaveBeenCalled();
@@ -65,7 +71,11 @@ describe("useCartActions", () => {
 
     const ok = await result.current.handleRegisterSale();
 
-    expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems);
+    expect(mockRegister).toHaveBeenCalledWith(mockCart.groupedItems, {
+      deviceId: undefined,
+      hasLocalOnlyItems: undefined,
+      forceDirectApi: undefined,
+    });
     expect(mockCart.resetCart).not.toHaveBeenCalled();
     expect(mockCart.syncCart).not.toHaveBeenCalled();
     expect(mockCloseCart).not.toHaveBeenCalled();

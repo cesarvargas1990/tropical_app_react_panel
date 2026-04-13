@@ -408,7 +408,9 @@ describe("MainApp", () => {
     });
     useCartFlow.mockReturnValue(cartState);
 
-    const register = vi.fn().mockResolvedValue(undefined);
+    const register = vi.fn().mockResolvedValue({
+      shouldSyncCart: true,
+    });
     const showSuccess = vi.fn().mockResolvedValue(undefined);
     useSaleRegister.mockReturnValue({ register, showSuccess });
 
@@ -421,7 +423,11 @@ describe("MainApp", () => {
     fireEvent.click(screen.getByText("trigger-register"));
 
     await waitFor(() => {
-      expect(register).toHaveBeenCalledWith(cartState.groupedItems);
+      expect(register).toHaveBeenCalledWith(cartState.groupedItems, {
+        deviceId: "tablet-test",
+        hasLocalOnlyItems: undefined,
+        forceDirectApi: undefined,
+      });
     });
 
     expect(cartState.resetCart).toHaveBeenCalledTimes(1);
@@ -468,7 +474,11 @@ describe("MainApp", () => {
     fireEvent.click(screen.getByText("trigger-register"));
 
     await waitFor(() => {
-      expect(registerError).toHaveBeenCalledWith(cartState.groupedItems);
+      expect(registerError).toHaveBeenCalledWith(cartState.groupedItems, {
+        deviceId: "tablet-test",
+        hasLocalOnlyItems: undefined,
+        forceDirectApi: undefined,
+      });
       expect(swalFireMock).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Error",

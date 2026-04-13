@@ -60,6 +60,7 @@ describe("useCartFlow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     swalFireMock.mockReset();
+    swalFireMock.mockResolvedValue(undefined);
     window.localStorage.clear();
     vi.stubGlobal("navigator", {
       onLine: true,
@@ -355,15 +356,13 @@ describe("useCartFlow", () => {
     );
   });
 
-  it("revierte la actualizacion optimista si agregar item directo falla", async () => {
-    scanCartItem.mockRejectedValueOnce({
-      response: {
-        status: 500,
-      },
-      message: "fallo",
-    });
+  it("guarda en borrador local si agregar item directo falla por red", async () => {
+    scanCartItem.mockRejectedValueOnce(new Error("Network Error"));
 
     const { result } = setup();
+    await waitFor(() => {
+      expect(getActiveCart).toHaveBeenCalledWith("tablet-test");
+    });
     let ok;
 
     await act(async () => {
@@ -376,42 +375,24 @@ describe("useCartFlow", () => {
       });
     });
 
-    expect(ok).toBe(false);
-    expect(result.current.cartCount).toBe(0);
-    expect(result.current.cartItems).toEqual([]);
-    expect(swalFireMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("preserva el item optimista durante syncs viejos mientras el scan sigue pendiente", async () => {
-    let resolveScan;
-    scanCartItem.mockReturnValue(
-      new Promise((resolve) => {
-        resolveScan = resolve;
+    expect(ok).toBe(true);
+    expect(result.current.cartCount).toBe(1);
+    expect(result.current.cartItems[0]).toEqual(
+      expect.objectContaining({
+        __localOnly: true,
+        quantity: 1,
+        unitPrice: 5000,
       }),
     );
+  });
 
-    getActiveCart
-      .mockResolvedValueOnce({
-        id: 10,
-        version: 1,
-        status: "active",
-        items: [],
-      })
-      .mockResolvedValueOnce({
-        id: 10,
-        version: 1,
-        status: "active",
-        items: [],
-      });
+  it("syncCart devuelve el estado local sin consultar backend cuando no hay internet", async () => {
+    navigator.onLine = false;
 
     const { result } = setup();
-    await waitFor(() => {
-      expect(getActiveCart).toHaveBeenCalledWith("tablet-test");
-    });
-    let promise;
 
-    act(() => {
-      promise = result.current.addItemDirect({
+    await act(async () => {
+      await result.current.addItemDirect({
         productMatrixId: 33,
         sabor: "Mango",
         caracteristica: "Clasico",
@@ -420,40 +401,22 @@ describe("useCartFlow", () => {
       });
     });
 
-    expect(result.current.cartCount).toBe(1);
+    getActiveCart.mockClear();
 
+    let snapshot;
     await act(async () => {
-      await result.current.syncCart();
+      snapshot = await result.current.syncCart();
     });
 
-    expect(result.current.cartCount).toBe(1);
-    expect(result.current.cartItems[0].id).toMatch(/^optimistic-/);
-
-    await act(async () => {
-      resolveScan({
-        id: 10,
-        version: 2,
-        status: "active",
-        items: [
-          {
-            id: 88,
-            productMatrixId: 33,
-            productName: "Mango (Clasico)",
-            quantity: 1,
-            unitPrice: 5000,
-            toppings: 0,
-            delivery: 0,
-            subtotal: 5000,
-            sizeLabel: "L",
-          },
-        ],
-      });
-
-      await promise;
-    });
-
-    expect(result.current.cartCount).toBe(1);
-    expect(result.current.cartItems[0].id).toBe(88);
+    expect(getActiveCart).not.toHaveBeenCalled();
+    expect(snapshot.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          __localOnly: true,
+          productMatrixId: 33,
+        }),
+      ]),
+    );
   });
 
   it("guarda acceso directo en borrador local cuando no hay internet", async () => {
