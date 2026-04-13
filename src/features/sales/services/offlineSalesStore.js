@@ -20,7 +20,21 @@ function dispatchSalesUpdate() {
 }
 
 function buildPendingSaleId() {
-  return `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return `pending-${globalThis.crypto.randomUUID()}`;
+  }
+
+  if (typeof globalThis.crypto?.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    const randomHex = Array.from(bytes, (value) =>
+      value.toString(16).padStart(2, "0"),
+    ).join("");
+
+    return `pending-${randomHex}`;
+  }
+
+  return `pending-${Date.now()}`;
 }
 
 function normalizeQuantity(value) {
