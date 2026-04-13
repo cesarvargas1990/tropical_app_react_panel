@@ -5,6 +5,7 @@ import {
   cacheLatestSales,
   queuePendingSale,
   readCachedLatestSales,
+  rememberSaleLocally,
   registerSaleDirect,
   syncPendingSales,
 } from "./offlineSalesStore";
@@ -16,7 +17,13 @@ import {
 export async function getLatestSales() {
   try {
     const res = await api.get("/api/sales/latest");
-    cacheLatestSales(res.data);
+    cacheLatestSales(
+      (Array.isArray(res.data) ? res.data : []).map((sale) => ({
+        ...sale,
+        __offline: Number(sale.offline ?? 0) === 1,
+        __unsynced: false,
+      })),
+    );
     return readCachedLatestSales();
   } catch (error) {
     if (!isNetworkError(error)) {
@@ -35,7 +42,10 @@ export async function registerSale(cartItems, options = {}) {
   );
 
   if (!isNavigatorOnline()) {
-    queuePendingSale(items);
+    queuePendingSale(items, {
+      deviceId,
+      clearServerCartAfterSync: true,
+    });
     return {
       success: true,
       pending: true,
@@ -47,6 +57,9 @@ export async function registerSale(cartItems, options = {}) {
   if (mustUseDirectApi) {
     try {
       const result = await registerSaleDirect(items);
+      rememberSaleLocally(items, {
+        offlineSale: false,
+      });
 
       if (options.clearServerCartAfterDirectSync !== false) {
         try {
@@ -72,7 +85,11 @@ export async function registerSale(cartItems, options = {}) {
         throw error;
       }
 
-      queuePendingSale(items);
+      queuePendingSale(items, {
+        deviceId,
+        clearServerCartAfterSync:
+          options.clearServerCartAfterDirectSync !== false,
+      });
       return {
         success: true,
         pending: true,
@@ -84,6 +101,9 @@ export async function registerSale(cartItems, options = {}) {
 
   try {
     const result = await checkoutCart({ deviceId });
+    rememberSaleLocally(items, {
+      offlineSale: false,
+    });
     return {
       ...result,
       pending: false,
@@ -95,7 +115,10 @@ export async function registerSale(cartItems, options = {}) {
       throw error;
     }
 
-    queuePendingSale(items);
+    queuePendingSale(items, {
+      deviceId,
+      clearServerCartAfterSync: true,
+    });
     return {
       success: true,
       pending: true,

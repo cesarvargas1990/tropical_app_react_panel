@@ -55,7 +55,11 @@ export function RecentSalesModal({ onClose }) {
               {sales.map((sale) => (
                 <tr
                   key={sale.id}
-                  className={sale.__unsynced ? "recent-row-pending" : undefined}
+                  className={
+                    sale.__unsynced || sale.__offline
+                      ? "recent-row-pending"
+                      : undefined
+                  }
                 >
                   <td>{sale.machine}</td>
                   <td>{sale.flavor}</td>
@@ -64,7 +68,11 @@ export function RecentSalesModal({ onClose }) {
                   <td className="recent-link">{sale.quantity}</td>
                   <td>
                     {sale.date}
-                    {sale.__unsynced ? " • Pendiente" : ""}
+                    {sale.__unsynced
+                      ? " • Pendiente"
+                      : sale.__offline
+                        ? " • Offline"
+                        : ""}
                   </td>
                 </tr>
               ))}

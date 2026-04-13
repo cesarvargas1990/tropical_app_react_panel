@@ -6,6 +6,10 @@ vi.mock("../../../src/shared/services/api", () => ({
   },
 }));
 
+vi.mock("../../../src/features/cart/services/cartService", () => ({
+  clearActiveCart: vi.fn(),
+}));
+
 import api from "../../../src/shared/services/api";
 import {
   cacheLatestSales,
@@ -13,8 +17,10 @@ import {
   mergeSalesWithPending,
   queuePendingSale,
   readCachedLatestSales,
+  rememberSaleLocally,
   syncPendingSales,
 } from "../../../src/features/sales/services/offlineSalesStore";
+import { clearActiveCart } from "../../../src/features/cart/services/cartService";
 
 describe("offlineSalesStore", () => {
   beforeEach(() => {
@@ -50,6 +56,7 @@ describe("offlineSalesStore", () => {
         size: "L",
         quantity: 2,
         __unsynced: true,
+        __offline: true,
       }),
     );
     expect(eventSpy).toHaveBeenCalled();
@@ -130,19 +137,77 @@ describe("offlineSalesStore", () => {
     expect(result).toEqual({ synced: 1, remaining: 0 });
     expect(api.post).toHaveBeenCalledWith(
       "/api/sales",
-      expect.arrayContaining([
-        expect.objectContaining({
-          productMatrixId: 10,
-          quantity: 1,
-        }),
-      ]),
+      expect.objectContaining({
+        offline: true,
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            productMatrixId: 10,
+            quantity: 1,
+          }),
+        ]),
+      }),
     );
     expect(sales[0]).toEqual(
       expect.objectContaining({
         __unsynced: false,
+        __offline: true,
         machine: "Maquina 1",
       }),
     );
+  });
+
+  it("recuerda ventas normales en cache para verlas sin internet", () => {
+    rememberSaleLocally([
+      {
+        productMatrixId: 15,
+        quantity: 1,
+        productName: "Granizado",
+        flavor: "Maracuya",
+        feature: "Frozen",
+        sizeLabel: "S",
+        machineName: "Tanque 2",
+      },
+    ]);
+
+    const sales = readCachedLatestSales();
+
+    expect(sales[0]).toEqual(
+      expect.objectContaining({
+        machine: "Tanque 2",
+        flavor: "Maracuya",
+        __unsynced: false,
+        __offline: false,
+      }),
+    );
+  });
+
+  it("limpia el carrito servidor al sincronizar ventas offline nacidas del carro backend", async () => {
+    api.post.mockResolvedValue({ data: { success: true, venta_id: 777 } });
+    clearActiveCart.mockResolvedValue({ ok: true });
+
+    queuePendingSale(
+      [
+        {
+          productMatrixId: 20,
+          quantity: 1,
+          unitPrice: 5000,
+          subtotal: 5000,
+          flavor: "Lulo",
+          sizeLabel: "M",
+          machineName: "Maquina 5",
+        },
+      ],
+      {
+        deviceId: "tablet-1",
+        clearServerCartAfterSync: true,
+      },
+    );
+
+    await syncPendingSales();
+
+    expect(clearActiveCart).toHaveBeenCalledWith({
+      deviceId: "tablet-1",
+    });
   });
 
   it("preserva los pendientes que no pudieron sincronizarse", async () => {

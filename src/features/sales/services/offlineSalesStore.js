@@ -1,4 +1,5 @@
 import api from "../../../shared/services/api";
+import { clearActiveCart } from "../../cart/services/cartService";
 import {
   readJsonStorage,
   removeStorageKey,
@@ -158,6 +159,7 @@ function saleRowIdentity(row) {
 
 function toPendingSaleRow(item, sale, options = {}) {
   const isUnsynced = options.unsynced !== false;
+  const isOfflineSale = options.offlineSale === true || isUnsynced;
 
   return {
     id: `${isUnsynced ? "pending" : "synced"}-${sale.id}-${item.productMatrixId}-${item.size ?? "na"}`,
@@ -169,6 +171,7 @@ function toPendingSaleRow(item, sale, options = {}) {
     date: normalizeDate(options.date ?? sale.createdAt),
     __sortDate: options.sortDate ?? sale.createdAt,
     __unsynced: isUnsynced,
+    __offline: isOfflineSale,
     __localOrigin: true,
     __pendingSaleId: sale.id,
   };
@@ -258,11 +261,18 @@ function prependPendingRowsToCache(sale) {
   replaceLocalRows([sale.id], toPendingRows([sale]));
 }
 
-export function queuePendingSale(items) {
+export function queuePendingSale(items, options = {}) {
   const queue = getPendingSales();
   const entry = {
     id: buildPendingSaleId(),
     createdAt: new Date().toISOString(),
+    clearServerCartAfterSync:
+      options.clearServerCartAfterSync === true &&
+      String(options.deviceId ?? "").trim() !== "",
+    deviceId:
+      String(options.deviceId ?? "").trim() === ""
+        ? null
+        : String(options.deviceId),
     items: items.map((item) => ({
       productMatrixId: Number(item.productMatrixId ?? 0),
       unitPrice: Number(item.unitPrice ?? 0),
@@ -288,19 +298,62 @@ export function queuePendingSale(items) {
   return entry;
 }
 
-export async function registerSaleDirect(items) {
+export function rememberSaleLocally(items, options = {}) {
+  const entry = {
+    id: options.id ?? buildPendingSaleId(),
+    createdAt: options.createdAt ?? new Date().toISOString(),
+    items: (Array.isArray(items) ? items : []).map((item) => ({
+      productMatrixId: Number(item.productMatrixId ?? 0),
+      quantity: Number(item.quantity ?? 0),
+      productName: item.productName ?? "Producto",
+      baseName: item.baseName ?? item.productName ?? "Producto",
+      flavor: item.flavor ?? item.baseName ?? item.productName ?? "Producto",
+      feature: item.feature ?? "",
+      sizeLabel: item.sizeLabel ?? item.size ?? "",
+      machineName: item.machineName ?? item.machine ?? "",
+    })),
+  };
+
+  replaceLocalRows(
+    [entry.id],
+    toPendingRows([entry], {
+      unsynced: false,
+      offlineSale: options.offlineSale === true,
+      date: normalizeDate(options.date ?? entry.createdAt),
+      sortDate: options.sortDate ?? entry.createdAt,
+    }),
+  );
+
+  return entry;
+}
+
+export async function registerSaleDirect(items, options = {}) {
   const response = await api.post(
     "/api/sales",
-    items.map((item) => ({
-      productMatrixId: Number(item.productMatrixId ?? 0),
-      unitPrice: Number(item.unitPrice ?? 0),
-      quantity: Number(item.quantity ?? 0),
-      subtotal: Number(item.subtotal ?? 0),
-      machineId: item.machineId ?? null,
-      maquinaConfId: item.maquinaConfId ?? null,
-      toppings: Number(item.toppings ?? 0),
-      delivery: Number(item.delivery ?? 0),
-    })),
+    options.offline
+      ? {
+          offline: true,
+          items: items.map((item) => ({
+            productMatrixId: Number(item.productMatrixId ?? 0),
+            unitPrice: Number(item.unitPrice ?? 0),
+            quantity: Number(item.quantity ?? 0),
+            subtotal: Number(item.subtotal ?? 0),
+            machineId: item.machineId ?? null,
+            maquinaConfId: item.maquinaConfId ?? null,
+            toppings: Number(item.toppings ?? 0),
+            delivery: Number(item.delivery ?? 0),
+          })),
+        }
+      : items.map((item) => ({
+          productMatrixId: Number(item.productMatrixId ?? 0),
+          unitPrice: Number(item.unitPrice ?? 0),
+          quantity: Number(item.quantity ?? 0),
+          subtotal: Number(item.subtotal ?? 0),
+          machineId: item.machineId ?? null,
+          maquinaConfId: item.maquinaConfId ?? null,
+          toppings: Number(item.toppings ?? 0),
+          delivery: Number(item.delivery ?? 0),
+        })),
   );
 
   return response.data;
@@ -324,7 +377,19 @@ export async function syncPendingSales() {
 
     for (const sale of queue) {
       try {
-        await registerSaleDirect(sale.items ?? []);
+        await registerSaleDirect(sale.items ?? [], { offline: true });
+
+        if (sale.clearServerCartAfterSync && sale.deviceId) {
+          try {
+            await clearActiveCart({ deviceId: sale.deviceId });
+          } catch (error) {
+            console.warn(
+              "No se pudo limpiar el carrito del servidor tras sincronizar venta offline",
+              error,
+            );
+          }
+        }
+
         synced += 1;
         syncedSales.push(sale);
       } catch {
@@ -343,6 +408,7 @@ export async function syncPendingSales() {
       const syncedAt = new Date();
       const syncedRows = toPendingRows(syncedSales, {
         unsynced: false,
+        offlineSale: true,
         date: formatSaleDate(syncedAt),
         sortDate: syncedAt.toISOString(),
       });

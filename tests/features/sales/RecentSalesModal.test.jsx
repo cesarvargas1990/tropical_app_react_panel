@@ -86,4 +86,26 @@ describe("RecentSalesModal", () => {
     expect(pendingText).toBeInTheDocument();
     expect(pendingText.closest("tr")).toHaveClass("recent-row-pending");
   });
+
+  it("mantiene en rojo una venta offline ya sincronizada", async () => {
+    getLatestSales.mockResolvedValue([
+      {
+        id: 22,
+        machine: "A4",
+        flavor: "Limon",
+        feature: "",
+        size: "L",
+        quantity: 1,
+        date: "13/04/2026 08:20 AM",
+        __offline: true,
+        __unsynced: false,
+      },
+    ]);
+
+    render(<RecentSalesModal onClose={vi.fn()} />);
+
+    const offlineText = await screen.findByText(/Offline/i);
+    expect(offlineText).toBeInTheDocument();
+    expect(offlineText.closest("tr")).toHaveClass("recent-row-pending");
+  });
 });

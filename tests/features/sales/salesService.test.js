@@ -13,6 +13,7 @@ import {
   cacheLatestSales,
   queuePendingSale,
   readCachedLatestSales,
+  rememberSaleLocally,
   registerSaleDirect,
 } from "../../../src/features/sales/services/offlineSalesStore";
 
@@ -37,6 +38,7 @@ vi.mock("../../../src/features/sales/services/offlineSalesStore", () => ({
   cacheLatestSales: vi.fn(),
   queuePendingSale: vi.fn(),
   readCachedLatestSales: vi.fn(() => []),
+  rememberSaleLocally: vi.fn(),
   registerSaleDirect: vi.fn(),
   syncPendingSales: vi.fn(),
 }));
@@ -51,9 +53,9 @@ describe("salesService", () => {
 
   describe("getLatestSales", () => {
     it("usa la API, actualiza cache y retorna lo visible desde cache", async () => {
-      const serverSales = [{ id: 1, machine: "A1" }];
+      const serverSales = [{ id: 1, machine: "A1", offline: 1 }];
       const cachedSales = [
-        { id: 1, machine: "A1" },
+        { id: 1, machine: "A1", __offline: true },
         { id: "pending-2", machine: "A2", __unsynced: true },
       ];
 
@@ -63,7 +65,15 @@ describe("salesService", () => {
       const result = await getLatestSales();
 
       expect(api.get).toHaveBeenCalledWith("/api/sales/latest");
-      expect(cacheLatestSales).toHaveBeenCalledWith(serverSales);
+      expect(cacheLatestSales).toHaveBeenCalledWith([
+        {
+          id: 1,
+          machine: "A1",
+          offline: 1,
+          __offline: true,
+          __unsynced: false,
+        },
+      ]);
       expect(result).toEqual(cachedSales);
     });
 
@@ -108,7 +118,10 @@ describe("salesService", () => {
 
       const result = await registerSale(cartItems);
 
-      expect(queuePendingSale).toHaveBeenCalledWith(cartItems);
+      expect(queuePendingSale).toHaveBeenCalledWith(cartItems, {
+        deviceId: "tablet-test",
+        clearServerCartAfterSync: true,
+      });
       expect(checkoutCart).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: true,
@@ -125,6 +138,9 @@ describe("salesService", () => {
 
       expect(checkoutCart).toHaveBeenCalledWith({
         deviceId: "tablet-test",
+      });
+      expect(rememberSaleLocally).toHaveBeenCalledWith(cartItems, {
+        offlineSale: false,
       });
       expect(result).toEqual({
         success: true,
@@ -144,6 +160,9 @@ describe("salesService", () => {
       });
 
       expect(registerSaleDirect).toHaveBeenCalledWith(cartItems);
+      expect(rememberSaleLocally).toHaveBeenCalledWith(cartItems, {
+        offlineSale: false,
+      });
       expect(clearActiveCart).toHaveBeenCalledWith({
         deviceId: "tablet-test",
       });
@@ -161,7 +180,10 @@ describe("salesService", () => {
 
       const result = await registerSale(cartItems);
 
-      expect(queuePendingSale).toHaveBeenCalledWith(cartItems);
+      expect(queuePendingSale).toHaveBeenCalledWith(cartItems, {
+        deviceId: "tablet-test",
+        clearServerCartAfterSync: true,
+      });
       expect(result.pending).toBe(true);
       expect(result.mode).toBe("queued");
     });
