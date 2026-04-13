@@ -58,9 +58,17 @@ export function buildCartItems({
     const productName = characteristic
       ? `${selectedProduct.name} (${characteristic})`
       : selectedProduct.name;
+    const flavor =
+      selectedProduct.sabor ??
+      selectedProduct.name ??
+      selectedProduct.productName ??
+      "Producto";
 
     newItems.push({
       productName,
+      baseName: flavor,
+      flavor,
+      feature: characteristic,
       size: s.id,
       sizeLabel: s.nombre,
       quantity: state.items?.length || state.quantity,
@@ -69,6 +77,7 @@ export function buildCartItems({
       delivery: deliveryTotal,
       subtotal,
       machineId: match?.machineId ?? null,
+      machineName: match?.machineName ?? match?.machine ?? "Sin máquina",
       maquinaConfId: match?.maquinaConfId ?? null,
       productMatrixId: match?.productMatrixId ?? null,
     });

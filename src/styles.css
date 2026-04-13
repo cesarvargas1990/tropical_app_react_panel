@@ -923,6 +923,15 @@ body {
   color: #fca5a5;
 }
 
+.recent-table tr.recent-row-offline-synced td {
+  background: rgba(20, 83, 45, 0.42);
+  color: #bbf7d0;
+}
+
+.recent-table tr.recent-row-offline-synced .recent-link {
+  color: #86efac;
+}
+
 .recent-link {
   color: #38bdf8;
   font-weight: 600;

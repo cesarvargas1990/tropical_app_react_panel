@@ -129,8 +129,25 @@ function setLatestSalesCache(sales) {
 }
 
 function normalizeVisibleSaleRow(row) {
+  const parsed = extractFlavorFeatureFromProductName(
+    row?.productName ?? row?.flavor ?? "",
+  );
+  const machineId = row?.machineId ?? null;
   const normalized = {
     ...row,
+    machine:
+      row?.machine ??
+      row?.machineName ??
+      row?.machineLabel ??
+      (machineId ? `Tanque ${machineId}` : "Sin máquina"),
+    flavor:
+      row?.flavor ??
+      parsed.flavor ??
+      row?.baseName ??
+      row?.productName ??
+      "Producto",
+    feature: row?.feature ?? parsed.feature ?? "",
+    size: row?.size ?? row?.sizeLabel ?? "",
     quantity: normalizeQuantity(row?.quantity),
     date: normalizeDate(row?.date ?? row?.__sortDate ?? ""),
   };
@@ -192,17 +209,54 @@ function saleRowIdentity(row) {
   ]);
 }
 
+function extractFlavorFeatureFromProductName(value) {
+  const raw = String(value ?? "").trim();
+  const match = raw.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+
+  return {
+    flavor: String(match?.[1] ?? raw).trim(),
+    feature: String(match?.[2] ?? "").trim(),
+  };
+}
+
+function normalizeSaleItemSnapshot(item) {
+  const parsed = extractFlavorFeatureFromProductName(
+    item?.productName ?? item?.flavor ?? item?.baseName ?? "",
+  );
+  const machineId = item?.machineId ?? null;
+
+  return {
+    ...item,
+    machineName:
+      item?.machineName ??
+      item?.machine ??
+      item?.machineLabel ??
+      (machineId ? `Tanque ${machineId}` : "Sin máquina"),
+    baseName:
+      item?.baseName ?? parsed.flavor ?? item?.productName ?? "Producto",
+    flavor:
+      item?.flavor ??
+      parsed.flavor ??
+      item?.baseName ??
+      item?.productName ??
+      "Producto",
+    feature: item?.feature ?? parsed.feature ?? "",
+    sizeLabel: item?.sizeLabel ?? item?.size ?? "",
+  };
+}
+
 function toPendingSaleRow(item, sale, options = {}) {
+  const normalizedItem = normalizeSaleItemSnapshot(item);
   const isUnsynced = options.unsynced !== false;
   const isOfflineSale = options.offlineSale === true || isUnsynced;
 
   return {
-    id: `${isUnsynced ? "pending" : "synced"}-${sale.id}-${item.productMatrixId}-${item.size ?? "na"}`,
-    machine: item.machineName ?? item.machine ?? "Sin máquina",
-    flavor: item.flavor ?? item.baseName ?? item.productName ?? "Producto",
-    feature: item.feature ?? "",
-    size: item.sizeLabel ?? item.size ?? "",
-    quantity: normalizeQuantity(item.quantity),
+    id: `${isUnsynced ? "pending" : "synced"}-${sale.id}-${normalizedItem.productMatrixId}-${normalizedItem.size ?? "na"}`,
+    machine: normalizedItem.machineName,
+    flavor: normalizedItem.flavor,
+    feature: normalizedItem.feature,
+    size: normalizedItem.sizeLabel,
+    quantity: normalizeQuantity(normalizedItem.quantity),
     date: normalizeDate(options.date ?? sale.createdAt),
     __sortDate: options.sortDate ?? sale.createdAt,
     __unsynced: isUnsynced,
@@ -298,7 +352,10 @@ export function mergeSalesWithPending(
       return true;
     });
 
-  return [...pendingRows, ...mergedServerRows].slice(0, MAX_LATEST_SALES);
+  return sortSalesDesc([...pendingRows, ...mergedServerRows]).slice(
+    0,
+    MAX_LATEST_SALES,
+  );
 }
 
 function prependPendingRowsToCache(sale) {
@@ -318,6 +375,7 @@ export function queuePendingSale(items, options = {}) {
         ? null
         : String(options.deviceId),
     items: items.map((item) => ({
+      ...normalizeSaleItemSnapshot(item),
       productMatrixId: Number(item.productMatrixId ?? 0),
       unitPrice: Number(item.unitPrice ?? 0),
       quantity: Number(item.quantity ?? 0),
@@ -326,12 +384,6 @@ export function queuePendingSale(items, options = {}) {
       maquinaConfId: item.maquinaConfId ?? null,
       toppings: Number(item.toppings ?? 0),
       delivery: Number(item.delivery ?? 0),
-      productName: item.productName ?? "Producto",
-      baseName: item.baseName ?? item.productName ?? "Producto",
-      flavor: item.flavor ?? item.baseName ?? item.productName ?? "Producto",
-      feature: item.feature ?? "",
-      sizeLabel: item.sizeLabel ?? "",
-      machineName: item.machineName ?? item.machine ?? "",
     })),
   };
 
@@ -347,14 +399,9 @@ export function rememberSaleLocally(items, options = {}) {
     id: options.id ?? buildPendingSaleId(),
     createdAt: options.createdAt ?? new Date().toISOString(),
     items: (Array.isArray(items) ? items : []).map((item) => ({
+      ...normalizeSaleItemSnapshot(item),
       productMatrixId: Number(item.productMatrixId ?? 0),
       quantity: Number(item.quantity ?? 0),
-      productName: item.productName ?? "Producto",
-      baseName: item.baseName ?? item.productName ?? "Producto",
-      flavor: item.flavor ?? item.baseName ?? item.productName ?? "Producto",
-      feature: item.feature ?? "",
-      sizeLabel: item.sizeLabel ?? item.size ?? "",
-      machineName: item.machineName ?? item.machine ?? "",
     })),
   };
 

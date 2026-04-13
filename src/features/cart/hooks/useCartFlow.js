@@ -127,9 +127,33 @@ export function useCartFlow({
   const enrichCartItem = useCallback(
     (item) => {
       const match = productByMatrixId.get(String(item.productMatrixId ?? ""));
+      const flavor =
+        item.flavor ??
+        item.baseName ??
+        match?.sabor ??
+        item.productName?.split(" (")[0] ??
+        "Producto";
+      const feature =
+        item.feature ??
+        match?.caracteristica ??
+        item.productName?.match(/\((.*?)\)/)?.[1] ??
+        "";
+      const machineId = item.machineId ?? match?.machineId ?? null;
+      const machineName =
+        item.machineName ??
+        item.machine ??
+        match?.machineName ??
+        match?.machine ??
+        (machineId ? `Tanque ${machineId}` : "Sin máquina");
 
       return {
         ...item,
+        machineId,
+        machineName,
+        baseName: item.baseName ?? flavor,
+        flavor,
+        feature,
+        sizeLabel: item.sizeLabel ?? match?.tamano ?? item.sizeLabel ?? "",
         size:
           item.size ??
           item.sizeId ??
@@ -420,7 +444,11 @@ export function useCartFlow({
         id: `optimistic-${productMatrixId}-${optimisticItemCounter}`,
         productMatrixId,
         machineId: product?.machineId ?? null,
+        machineName: product?.machineName ?? product?.machine ?? "Sin máquina",
         maquinaConfId: product?.maquinaConfId ?? null,
+        baseName: flavor,
+        flavor,
+        feature,
         productName,
         sizeLabel,
         quantity: 1,

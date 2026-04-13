@@ -56,9 +56,11 @@ export function RecentSalesModal({ onClose }) {
                 <tr
                   key={sale.id}
                   className={
-                    sale.__unsynced || sale.__offline
+                    sale.__unsynced
                       ? "recent-row-pending"
-                      : undefined
+                      : sale.__offline
+                        ? "recent-row-offline-synced"
+                        : undefined
                   }
                 >
                   <td>{sale.machine}</td>

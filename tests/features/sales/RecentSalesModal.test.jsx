@@ -87,7 +87,7 @@ describe("RecentSalesModal", () => {
     expect(pendingText.closest("tr")).toHaveClass("recent-row-pending");
   });
 
-  it("mantiene en rojo una venta offline ya sincronizada", async () => {
+  it("marca en verde una venta offline ya sincronizada", async () => {
     getLatestSales.mockResolvedValue([
       {
         id: 22,
@@ -106,6 +106,6 @@ describe("RecentSalesModal", () => {
 
     const offlineText = await screen.findByText(/Offline/i);
     expect(offlineText).toBeInTheDocument();
-    expect(offlineText.closest("tr")).toHaveClass("recent-row-pending");
+    expect(offlineText.closest("tr")).toHaveClass("recent-row-offline-synced");
   });
 });

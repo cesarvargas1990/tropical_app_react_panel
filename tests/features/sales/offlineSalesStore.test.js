@@ -116,6 +116,41 @@ describe("offlineSalesStore", () => {
     );
   });
 
+  it("ordena la mezcla final por fecha descendente", () => {
+    const merged = mergeSalesWithPending(
+      [
+        {
+          id: 100,
+          machine: "Maquina 2",
+          flavor: "Lulo",
+          feature: "",
+          size: "L",
+          quantity: 1,
+          date: "2026-04-13T11:00:00.000Z",
+        },
+      ],
+      [
+        {
+          id: "pending-1",
+          createdAt: "2026-04-13T10:00:00.000Z",
+          items: [
+            {
+              productMatrixId: 1,
+              quantity: 1,
+              flavor: "Mango",
+              feature: "Clasico",
+              sizeLabel: "M",
+              machineName: "Maquina 1",
+            },
+          ],
+        },
+      ],
+    );
+
+    expect(merged[0]).toEqual(expect.objectContaining({ id: 100 }));
+    expect(merged[1].__unsynced).toBe(true);
+  });
+
   it("sincroniza pendientes y los deja visibles como sincronizados", async () => {
     api.post.mockResolvedValue({ data: { success: true, venta_id: 501 } });
 
@@ -180,6 +215,28 @@ describe("offlineSalesStore", () => {
         date: expect.stringMatching(
           /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}\s+(AM|PM)$/,
         ),
+      }),
+    );
+  });
+
+  it("usa un fallback consistente de tanque cuando solo existe machineId", () => {
+    rememberSaleLocally([
+      {
+        productMatrixId: 16,
+        machineId: 1,
+        quantity: 1,
+        productName: "Refrescante (Refrescante)",
+        sizeLabel: "M",
+      },
+    ]);
+
+    const sales = readCachedLatestSales();
+
+    expect(sales[0]).toEqual(
+      expect.objectContaining({
+        machine: "Tanque 1",
+        flavor: "Refrescante",
+        feature: "Refrescante",
       }),
     );
   });
@@ -309,6 +366,83 @@ describe("offlineSalesStore", () => {
       expect.arrayContaining([
         expect.objectContaining({ machine: "Servidor 1" }),
         expect.objectContaining({ machine: "Maquina 1", __unsynced: true }),
+      ]),
+    );
+  });
+
+  it("mantiene visibles las ventas anteriores al registrar nuevas ventas offline", () => {
+    cacheLatestSales([
+      {
+        id: 1,
+        machine: "Tanque 1",
+        flavor: "Refrescante",
+        feature: "Refrescante",
+        size: "S",
+        quantity: 1,
+        date: "13/04/2026 05:18 PM",
+      },
+      {
+        id: 2,
+        machine: "Tanque 1",
+        flavor: "Refrescante",
+        feature: "Refrescante",
+        size: "M",
+        quantity: 1,
+        date: "13/04/2026 05:17 PM",
+      },
+      {
+        id: 3,
+        machine: "Tanque 1",
+        flavor: "Refrescante",
+        feature: "Refrescante",
+        size: "L",
+        quantity: 1,
+        date: "13/04/2026 05:16 PM",
+      },
+    ]);
+
+    rememberSaleLocally([
+      {
+        productMatrixId: 20,
+        quantity: 1,
+        productName: "Refrescante (Refrescante)",
+        sizeLabel: "XL",
+        machineName: "Tanque 1",
+      },
+    ]);
+
+    const beforeOffline = readCachedLatestSales();
+
+    expect(beforeOffline).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 1, size: "S", __unsynced: false }),
+        expect.objectContaining({ id: 2, size: "M", __unsynced: false }),
+        expect.objectContaining({ id: 3, size: "L", __unsynced: false }),
+        expect.objectContaining({ size: "XL", __unsynced: false }),
+      ]),
+    );
+
+    queuePendingSale([
+      {
+        productMatrixId: 21,
+        quantity: 1,
+        unitPrice: 5000,
+        subtotal: 5000,
+        productName: "Refrescante (Refrescante)",
+        sizeLabel: "XXL",
+        machineName: "Tanque 1",
+      },
+    ]);
+
+    const afterOffline = readCachedLatestSales();
+
+    expect(afterOffline).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 1, size: "S", __unsynced: false }),
+        expect.objectContaining({ id: 2, size: "M", __unsynced: false }),
+        expect.objectContaining({ id: 3, size: "L", __unsynced: false }),
+        expect.objectContaining({ size: "XL", __unsynced: false }),
+        expect.objectContaining({ size: "XXL", __unsynced: true }),
       ]),
     );
   });
