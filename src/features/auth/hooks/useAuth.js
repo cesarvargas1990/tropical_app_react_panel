@@ -5,9 +5,15 @@ const AUTH_TOKEN_KEY = "auth_token";
 const AUTH_USER_NAME_KEY = "auth_user_name";
 
 function sanitizeUserName(value) {
-  return String(value ?? "")
+  const withoutControlChars = Array.from(String(value ?? ""))
+    .map((char) => {
+      const code = char.charCodeAt(0);
+      return code >= 32 && code !== 127 ? char : " ";
+    })
+    .join("");
+
+  return withoutControlChars
     .normalize("NFKC")
-    .replace(/[\u0000-\u001F\u007F]/g, " ")
     .replace(/[<>]/g, "")
     .replace(/\s+/g, " ")
     .trim()
