@@ -69,9 +69,12 @@ function resolveCartItemBaseKey(item, baseKeyByMatrixId) {
 
   const parsedName = parseProductNameParts(item.productName);
   const flavor =
-    item.flavor ?? item.sabor ?? item.name ?? item.productName ?? parsedName.flavor;
-  const feature =
-    item.feature ?? item.caracteristica ?? parsedName.feature;
+    item.flavor ??
+    item.sabor ??
+    item.name ??
+    item.productName ??
+    parsedName.flavor;
+  const feature = item.feature ?? item.caracteristica ?? parsedName.feature;
 
   if (!flavor || !feature) {
     return "";
@@ -502,7 +505,11 @@ function MainApp({ userName = "" }) {
             <ProductCard
               key={p.id}
               product={p}
-              badgeCount={baseProductCounts[buildBaseProductKey(p.sabor_id, p.carac_id)] ?? 0}
+              badgeCount={
+                baseProductCounts[
+                  buildBaseProductKey(p.sabor_id, p.carac_id)
+                ] ?? 0
+              }
               variantBadges={
                 baseProductVariantBadges[
                   buildBaseProductKey(p.sabor_id, p.carac_id)

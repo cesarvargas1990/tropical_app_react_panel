@@ -17,7 +17,10 @@ export function ProductCard({
       aria-label={`Seleccionar ${product.name}`}
     >
       {variantBadges.length > 0 ? (
-        <div className="product-card-badges" aria-label={`${badgeCount} en carrito`}>
+        <div
+          className="product-card-badges"
+          aria-label={`${badgeCount} en carrito`}
+        >
           {variantBadges.map((badge) => (
             <span
               key={`${badge.label}-${badge.tone}`}
@@ -29,7 +32,10 @@ export function ProductCard({
           ))}
         </div>
       ) : badgeCount > 0 ? (
-        <span className="product-card-badge" aria-label={`${badgeCount} en carrito`}>
+        <span
+          className="product-card-badge"
+          aria-label={`${badgeCount} en carrito`}
+        >
           {badgeCount}
         </span>
       ) : null}
