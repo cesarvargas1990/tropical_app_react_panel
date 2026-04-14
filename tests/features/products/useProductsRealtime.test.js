@@ -7,6 +7,7 @@ describe("useProductsRealtime", () => {
   let stopListeningMock;
   let channelMock;
   let onReload;
+  let onDirectAccessReload;
   let onLegacyProductEvent;
   let onCartUpdated;
 
@@ -25,6 +26,7 @@ describe("useProductsRealtime", () => {
     };
 
     onReload = vi.fn();
+    onDirectAccessReload = vi.fn();
     onLegacyProductEvent = vi.fn();
     onCartUpdated = vi.fn();
   });
@@ -35,7 +37,12 @@ describe("useProductsRealtime", () => {
 
   it("se conecta al canal y escucha el evento", () => {
     renderHook(() =>
-      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+      useProductsRealtime({
+        onReload,
+        onDirectAccessReload,
+        onLegacyProductEvent,
+        onCartUpdated,
+      }),
     );
 
     expect(window.Echo.channel).toHaveBeenCalledWith("new-public-channel");
@@ -48,7 +55,12 @@ describe("useProductsRealtime", () => {
 
   it("ejecuta onReload y delega el evento legacy cuando llega NewEvent", () => {
     renderHook(() =>
-      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+      useProductsRealtime({
+        onReload,
+        onDirectAccessReload,
+        onLegacyProductEvent,
+        onCartUpdated,
+      }),
     );
 
     const callback = listenMock.mock.calls[0][1];
@@ -56,6 +68,7 @@ describe("useProductsRealtime", () => {
     callback({ message: "productid 77" });
 
     expect(onReload).toHaveBeenCalledTimes(1);
+    expect(onDirectAccessReload).toHaveBeenCalledTimes(1);
     expect(onLegacyProductEvent).toHaveBeenCalledWith({
       productId: 77,
       rawEvent: { message: "productid 77" },
@@ -64,7 +77,12 @@ describe("useProductsRealtime", () => {
 
   it("delegates CartUpdated events", () => {
     renderHook(() =>
-      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+      useProductsRealtime({
+        onReload,
+        onDirectAccessReload,
+        onLegacyProductEvent,
+        onCartUpdated,
+      }),
     );
 
     const callback = listenMock.mock.calls[1][1];
@@ -83,7 +101,12 @@ describe("useProductsRealtime", () => {
 
   it("limpia el listener al desmontar", () => {
     const { unmount } = renderHook(() =>
-      useProductsRealtime({ onReload, onLegacyProductEvent, onCartUpdated }),
+      useProductsRealtime({
+        onReload,
+        onDirectAccessReload,
+        onLegacyProductEvent,
+        onCartUpdated,
+      }),
     );
 
     unmount();

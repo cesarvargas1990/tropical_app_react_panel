@@ -29,6 +29,7 @@ import { useCartActions } from "../hooks/useCartActions";
 // Shared components
 import { AppHeader } from "./AppHeader";
 import { ProductSearchKeyboard } from "./ProductSearchKeyboard";
+import { buildDirectAccessGroupLayouts } from "../utils/directAccessLayout";
 
 function normalizeProductText(value) {
   return String(value ?? "")
@@ -52,12 +53,6 @@ function resolveDirectAccessGroupName(product) {
     product.nombre ??
     "Producto"
   );
-}
-
-function resolveDirectAccessGroupSpan(itemsCount) {
-  if (itemsCount >= 3) return 3;
-  if (itemsCount === 2) return 2;
-  return 1;
 }
 
 function buildBaseProductKey(flavorId, featureId) {
@@ -139,35 +134,28 @@ function MainApp({ userName = "" }) {
   const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
   const [directAccessProductIds, setDirectAccessProductIds] = useState([]);
 
+  const loadDirectAccessProducts = useCallback(async () => {
+    try {
+      const payload = await getDirectAccessProductsConfig();
+      const nextIds = Array.isArray(payload?.productMatrixIds)
+        ? payload.productMatrixIds
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value) && value > 0)
+        : [];
+
+      setDirectAccessProductIds(nextIds);
+    } catch {
+      setDirectAccessProductIds([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    void getDirectAccessProductsConfig()
-      .then((payload) => {
-        if (cancelled) return;
-
-        const nextIds = Array.isArray(payload?.productMatrixIds)
-          ? payload.productMatrixIds
-              .map((value) => Number(value))
-              .filter((value) => Number.isFinite(value) && value > 0)
-          : [];
-
-        setDirectAccessProductIds(nextIds);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setDirectAccessProductIds([]);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void loadDirectAccessProducts();
+  }, [loadDirectAccessProducts]);
 
   useEffect(() => {
     const syncOfflineSales = async () => {
@@ -244,6 +232,7 @@ function MainApp({ userName = "" }) {
 
   useProductsRealtime({
     onReload: loadProducts,
+    onDirectAccessReload: loadDirectAccessProducts,
     onLegacyProductEvent: handleLegacyProductEvent,
     onCartUpdated: handleCartUpdated,
   });
@@ -376,7 +365,7 @@ function MainApp({ userName = "" }) {
   }, [cart.cartItems, originalProducts]);
 
   const directAccessGroups = useMemo(() => {
-    return directAccessProducts.reduce((acc, product) => {
+    const grouped = directAccessProducts.reduce((acc, product) => {
       const groupName = resolveDirectAccessGroupName(product);
 
       if (!acc[groupName]) {
@@ -386,6 +375,8 @@ function MainApp({ userName = "" }) {
       acc[groupName].push(product);
       return acc;
     }, {});
+
+    return buildDirectAccessGroupLayouts(Object.entries(grouped));
   }, [directAccessProducts]);
 
   const scrollToTop = useCallback(() => {
@@ -394,8 +385,12 @@ function MainApp({ userName = "" }) {
 
   const handleRegisterAndScroll = useCallback(async () => {
     const ok = await handleRegisterSale();
-    if (ok) scrollToTop();
-  }, [handleRegisterSale, scrollToTop]);
+    if (!ok) return;
+
+    setSearchQuery("");
+    await loadDirectAccessProducts();
+    scrollToTop();
+  }, [handleRegisterSale, loadDirectAccessProducts, scrollToTop]);
 
   return (
     <div className="app">
@@ -451,15 +446,15 @@ function MainApp({ userName = "" }) {
             </div>
 
             <div className="direct-access-groups">
-              {Object.entries(directAccessGroups).map(([groupName, items]) => (
+              {directAccessGroups.map(({ groupName, items, span, columns }) => (
                 <section
                   key={groupName}
-                  className={`direct-access-group direct-access-group-span-${resolveDirectAccessGroupSpan(items.length)}`}
+                  className={`direct-access-group direct-access-group-span-${span}`}
                 >
                   <h3 className="direct-access-group-title">{groupName}</h3>
 
                   <div
-                    className={`direct-access-grid direct-access-grid-cols-${resolveDirectAccessGroupSpan(items.length)}`}
+                    className={`direct-access-grid direct-access-grid-cols-${columns}`}
                   >
                     {items.map((product) => {
                       const productKey = String(

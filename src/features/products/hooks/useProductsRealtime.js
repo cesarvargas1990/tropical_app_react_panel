@@ -9,6 +9,7 @@ import "../../../../socket.js";
  */
 export function useProductsRealtime({
   onReload,
+  onDirectAccessReload,
   onLegacyProductEvent,
   onCartUpdated,
 } = {}) {
@@ -26,6 +27,7 @@ export function useProductsRealtime({
     channel.listen("NewEvent", (e) => {
       console.log("🔥 Evento recibido vía socket:", e);
       onReload?.();
+      onDirectAccessReload?.();
 
       const productId = extractProductId(e?.message);
       if (productId) {
@@ -45,5 +47,5 @@ export function useProductsRealtime({
       channel.stopListening("NewEvent");
       channel.stopListening("CartUpdated");
     };
-  }, [onReload, onLegacyProductEvent, onCartUpdated]);
+  }, [onReload, onDirectAccessReload, onLegacyProductEvent, onCartUpdated]);
 }

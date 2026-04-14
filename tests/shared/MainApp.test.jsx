@@ -241,6 +241,55 @@ describe("MainApp", () => {
     });
   });
 
+  it("reloads direct access config through realtime callback", async () => {
+    const loadProducts = vi.fn();
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: [
+        {
+          productMatrixId: 334,
+          sabor_id: 1,
+          carac_id: 7,
+          sabor: "Refrescante",
+          caracteristica: "Refrescante",
+          tamano: "M",
+          valor: 8000,
+        },
+      ],
+      matrix: {},
+      loadProducts,
+    });
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
+    useCartFlow.mockReturnValue(createCartState());
+
+    getDirectAccessProductsConfig
+      .mockResolvedValueOnce({ productMatrixIds: [] })
+      .mockResolvedValueOnce({ productMatrixIds: [334] });
+
+    let realtimeArgs;
+    useProductsRealtime.mockImplementation((args) => {
+      realtimeArgs = args;
+    });
+
+    render(<MainApp />);
+
+    await waitFor(() => {
+      expect(getDirectAccessProductsConfig).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.queryByText("Granizados")).not.toBeInTheDocument();
+
+    await act(async () => {
+      await realtimeArgs.onDirectAccessReload();
+    });
+
+    expect(await screen.findByText("Granizados")).toBeInTheDocument();
+    expect(screen.getByText("Refrescante")).toBeInTheDocument();
+  });
+
   it("loads products, wires realtime updates, and disables cart button when empty", () => {
     const loadProducts = vi.fn();
     useProductsData.mockReturnValue({
@@ -566,6 +615,85 @@ describe("MainApp", () => {
 
     expect(cartState.syncCart).not.toHaveBeenCalled();
     expect(screen.getByTestId("cart-modal")).toBeInTheDocument();
+  });
+
+  it("reloads direct access config after a successful register", async () => {
+    const loadProducts = vi.fn();
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: baseProducts,
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation(() => {});
+
+    const cartState = createCartState({
+      cartItems: [{ id: 99 }],
+      groupedItems: [{ id: 99 }],
+      cartCount: 1,
+      syncCart: vi.fn().mockResolvedValue({ items_count: 0 }),
+    });
+    useCartFlow.mockReturnValue(cartState);
+
+    const register = vi.fn().mockResolvedValue({
+      shouldSyncCart: true,
+    });
+    const showSuccess = vi.fn().mockResolvedValue(undefined);
+    useSaleRegister.mockReturnValue({ register, showSuccess });
+    getDirectAccessProductsConfig
+      .mockResolvedValueOnce({ productMatrixIds: [] })
+      .mockResolvedValueOnce({ productMatrixIds: [1] });
+
+    render(<MainApp />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Continuar pedido/i }));
+    fireEvent.click(screen.getByText("trigger-register"));
+
+    await waitFor(() => {
+      expect(register).toHaveBeenCalledTimes(1);
+      expect(getDirectAccessProductsConfig).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("clears the active product search after a successful register", async () => {
+    const loadProducts = vi.fn();
+    useProductsData.mockReturnValue({
+      products: baseProducts,
+      originalProducts: baseProducts,
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation(() => {});
+
+    const cartState = createCartState({
+      cartItems: [{ id: 99 }],
+      groupedItems: [{ id: 99 }],
+      cartCount: 1,
+      syncCart: vi.fn().mockResolvedValue({ items_count: 0 }),
+    });
+    useCartFlow.mockReturnValue(cartState);
+
+    const register = vi.fn().mockResolvedValue({
+      shouldSyncCart: true,
+    });
+    const showSuccess = vi.fn().mockResolvedValue(undefined);
+    useSaleRegister.mockReturnValue({ register, showSuccess });
+
+    render(<MainApp />);
+
+    fireEvent.click(screen.getByRole("button", { name: /buscar producto/i }));
+    fireEvent.click(screen.getByRole("button", { name: "L" }));
+    fireEvent.click(screen.getByRole("button", { name: "U" }));
+
+    expect(screen.getByText("1 producto encontrado")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Continuar pedido/i }));
+    fireEvent.click(screen.getByText("trigger-register"));
+
+    await waitFor(() => {
+      expect(register).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("2 productos encontrados")).toBeInTheDocument();
+    });
   });
 
   it("filters visible products using the on-screen search keyboard", () => {

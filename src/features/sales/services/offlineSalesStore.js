@@ -134,6 +134,7 @@ function normalizeVisibleSaleRow(row) {
     row?.productName ?? row?.flavor ?? "",
   );
   const machineId = row?.machineId ?? null;
+  const sortSource = row?.__sortDate ?? row?.fecha_hora ?? row?.date ?? "";
   const normalized = {
     ...row,
     machine:
@@ -150,10 +151,9 @@ function normalizeVisibleSaleRow(row) {
     feature: row?.feature ?? parsed.feature ?? "",
     size: row?.size ?? row?.sizeLabel ?? "",
     quantity: normalizeQuantity(row?.quantity),
-    date: normalizeDate(row?.date ?? row?.__sortDate ?? ""),
+    date: normalizeDate(row?.date ?? row?.fecha_hora ?? row?.__sortDate ?? ""),
   };
 
-  const sortSource = row?.__sortDate ?? row?.date ?? "";
   normalized.__sortDate =
     sortSource instanceof Date || !Number.isNaN(Date.parse(String(sortSource)))
       ? new Date(sortSource).toISOString()

@@ -108,4 +108,37 @@ describe("RecentSalesModal", () => {
     expect(offlineText).toBeInTheDocument();
     expect(offlineText.closest("tr")).toHaveClass("recent-row-offline-synced");
   });
+
+  it("orders sales by the real timestamp descending", async () => {
+    getLatestSales.mockResolvedValue([
+      {
+        id: 1,
+        machine: "Tanque 1",
+        flavor: "Refrescante",
+        feature: "Refrescante",
+        size: "M",
+        quantity: 1,
+        date: "14/04/2026 04:59 PM",
+        fecha_hora: "2026-04-14 16:59:01",
+      },
+      {
+        id: 2,
+        machine: "Tanque 1",
+        flavor: "Refrescante",
+        feature: "Refrescante",
+        size: "L",
+        quantity: 1,
+        date: "14/04/2026 04:59 PM",
+        fecha_hora: "2026-04-14 16:59:59",
+      },
+    ]);
+
+    render(<RecentSalesModal onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole("row");
+      expect(rows[1]).toHaveTextContent("L");
+      expect(rows[2]).toHaveTextContent("M");
+    });
+  });
 });
