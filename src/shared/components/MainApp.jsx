@@ -17,6 +17,7 @@ import {
   syncPendingSales,
   useSaleRegister,
 } from "../../features/sales";
+import { parseProductNameParts } from "../utils/productName";
 
 // Shared hooks
 import { useBodyLock } from "../hooks/useBodyLock";
@@ -51,6 +52,70 @@ function resolveDirectAccessGroupName(product) {
     product.nombre ??
     "Producto"
   );
+}
+
+function buildBaseProductKey(flavorId, featureId) {
+  if (flavorId == null || featureId == null) return "";
+  return `${String(flavorId)}-${String(featureId)}`;
+}
+
+function resolveCartItemBaseKey(item, baseKeyByMatrixId) {
+  const matrixKey = String(item.productMatrixId ?? "");
+  const baseKeyFromMatrix = baseKeyByMatrixId.get(matrixKey);
+
+  if (baseKeyFromMatrix) {
+    return baseKeyFromMatrix;
+  }
+
+  const parsedName = parseProductNameParts(item.productName);
+  const flavor =
+    item.flavor ?? item.sabor ?? item.name ?? item.productName ?? parsedName.flavor;
+  const feature =
+    item.feature ?? item.caracteristica ?? parsedName.feature;
+
+  if (!flavor || !feature) {
+    return "";
+  }
+
+  return `${normalizeProductText(flavor)}-${normalizeProductText(feature)}`;
+}
+
+function resolveCartItemVariantLabel(item, productByMatrixId) {
+  const matrixKey = String(item.productMatrixId ?? "");
+  const matchedProduct = productByMatrixId.get(matrixKey);
+
+  const rawLabel =
+    item.sizeLabel ??
+    item.size ??
+    item.tamano ??
+    matchedProduct?.tamano ??
+    matchedProduct?.sizeLabel ??
+    matchedProduct?.size ??
+    "Item";
+
+  return String(rawLabel).trim() || "Item";
+}
+
+function resolveVariantSortRank(label) {
+  const normalized = normalizeProductText(label);
+  const variantRanks = new Map([
+    ["xs", 0],
+    ["s", 1],
+    ["small", 1],
+    ["pequeno", 1],
+    ["m", 2],
+    ["medium", 2],
+    ["mediano", 2],
+    ["l", 3],
+    ["large", 3],
+    ["grande", 3],
+    ["xl", 4],
+    ["xxl", 5],
+    ["botella", 20],
+    ["media", 21],
+  ]);
+
+  return variantRanks.get(normalized) ?? 100;
 }
 
 /**
@@ -224,6 +289,83 @@ function MainApp({ userName = "" }) {
     }, {});
   }, [cart.cartItems]);
 
+  const baseProductCounts = useMemo(() => {
+    const baseKeyByMatrixId = new Map(
+      originalProducts.map((product) => [
+        String(product.productMatrixId ?? product.id ?? ""),
+        buildBaseProductKey(product.sabor_id, product.carac_id),
+      ]),
+    );
+
+    return cart.cartItems.reduce((acc, item) => {
+      const key = resolveCartItemBaseKey(item, baseKeyByMatrixId);
+
+      if (!key) {
+        return acc;
+      }
+
+      acc[key] = (acc[key] ?? 0) + Number(item.quantity ?? 0);
+      return acc;
+    }, {});
+  }, [cart.cartItems, originalProducts]);
+
+  const baseProductVariantBadges = useMemo(() => {
+    const baseKeyByMatrixId = new Map(
+      originalProducts.map((product) => [
+        String(product.productMatrixId ?? product.id ?? ""),
+        buildBaseProductKey(product.sabor_id, product.carac_id),
+      ]),
+    );
+    const productByMatrixId = new Map(
+      originalProducts.map((product) => [
+        String(product.productMatrixId ?? product.id ?? ""),
+        product,
+      ]),
+    );
+    const variantCountsByBase = new Map();
+
+    for (const item of cart.cartItems) {
+      const baseKey = resolveCartItemBaseKey(item, baseKeyByMatrixId);
+
+      if (!baseKey) {
+        continue;
+      }
+
+      const variantLabel = resolveCartItemVariantLabel(item, productByMatrixId);
+      const currentVariantCounts =
+        variantCountsByBase.get(baseKey) ?? new Map();
+
+      currentVariantCounts.set(
+        variantLabel,
+        (currentVariantCounts.get(variantLabel) ?? 0) +
+          Number(item.quantity ?? 0),
+      );
+      variantCountsByBase.set(baseKey, currentVariantCounts);
+    }
+
+    return Object.fromEntries(
+      Array.from(variantCountsByBase.entries()).map(([baseKey, variants]) => [
+        baseKey,
+        Array.from(variants.entries())
+          .sort(([labelA], [labelB]) => {
+            const rankDiff =
+              resolveVariantSortRank(labelA) - resolveVariantSortRank(labelB);
+
+            if (rankDiff !== 0) {
+              return rankDiff;
+            }
+
+            return labelA.localeCompare(labelB, "es");
+          })
+          .map(([label, count], index) => ({
+            label,
+            count,
+            tone: index % 4,
+          })),
+      ]),
+    );
+  }, [cart.cartItems, originalProducts]);
+
   const directAccessGroups = useMemo(() => {
     return directAccessProducts.reduce((acc, product) => {
       const groupName = resolveDirectAccessGroupName(product);
@@ -357,7 +499,17 @@ function MainApp({ userName = "" }) {
 
         <div className="product-panel">
           {filteredProducts.map((p) => (
-            <ProductCard key={p.id} product={p} onSelect={cart.selectProduct} />
+            <ProductCard
+              key={p.id}
+              product={p}
+              badgeCount={baseProductCounts[buildBaseProductKey(p.sabor_id, p.carac_id)] ?? 0}
+              variantBadges={
+                baseProductVariantBadges[
+                  buildBaseProductKey(p.sabor_id, p.carac_id)
+                ] ?? []
+              }
+              onSelect={cart.selectProduct}
+            />
           ))}
         </div>
 

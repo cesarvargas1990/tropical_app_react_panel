@@ -29,4 +29,31 @@ describe("ProductCard", () => {
     fireEvent.click(screen.getByText("Lulada"));
     expect(onSelect).toHaveBeenCalledWith(product);
   });
+
+  it("renders the cart badge when the product has units in cart", () => {
+    render(<ProductCard product={product} badgeCount={3} onSelect={vi.fn()} />);
+
+    expect(screen.getByLabelText("3 en carrito")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+  });
+
+  it("renders variant badges when the product has multiple sizes in cart", () => {
+    render(
+      <ProductCard
+        product={product}
+        badgeCount={3}
+        variantBadges={[
+          { label: "S", count: 1, tone: 0 },
+          { label: "M", count: 1, tone: 1 },
+          { label: "L", count: 1, tone: 2 },
+        ]}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("S")).toBeInTheDocument();
+    expect(screen.getByText("M")).toBeInTheDocument();
+    expect(screen.getByText("L")).toBeInTheDocument();
+    expect(screen.getByLabelText("3 en carrito")).toBeInTheDocument();
+  });
 });

@@ -616,17 +616,15 @@ export function useCartFlow({
   const resetCart = useCallback(() => {
     pendingOptimisticItemsRef.current.clear();
     clearLocalDraft();
-    hydrateCart({
-      id: cartId,
-      device_id: deviceId,
-      status: "active",
-      version: cartVersionRef.current,
-      items_count: 0,
-      subtotal: 0,
-      currency_code: "COP",
-      items: [],
-    });
-  }, [cartId, clearLocalDraft, deviceId, hydrateCart]);
+    setCartId(null);
+    setCartVersion(0);
+    setCartStatus("active");
+    setCartItems([]);
+    setSelectedProduct(null);
+    setSizeState({});
+    setEditIndex(null);
+    setEditSourceItemIds([]);
+  }, [clearLocalDraft]);
 
   const removeGroup = useCallback(
     async (item) => {

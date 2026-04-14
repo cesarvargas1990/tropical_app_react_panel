@@ -64,9 +64,11 @@ vi.mock("../../src/features/sales/hooks/useSaleRegister", () => ({
 }));
 
 vi.mock("../../src/features/products/components/ProductCard", () => ({
-  ProductCard: ({ product, onSelect }) => (
+  ProductCard: ({ product, badgeCount = 0, variantBadges = [], onSelect }) => (
     <button
       data-testid={`product-${product.id}`}
+      data-badge-count={badgeCount}
+      data-variant-badges={JSON.stringify(variantBadges)}
       onClick={() => onSelect(product)}
     >
       {product.name}
@@ -276,6 +278,81 @@ describe("MainApp", () => {
       name: /Continuar pedido/i,
     });
     expect(continueButton).toBeDisabled();
+  });
+
+  it("shows discriminated variant badges on a product card ordered by size", () => {
+    const loadProducts = vi.fn();
+    useProductsData.mockReturnValue({
+      products: [
+        {
+          id: 10,
+          sabor_id: 1,
+          carac_id: 7,
+          name: "Aguardiente Origen Amarillo",
+          caracteristica: "Refrescante",
+        },
+      ],
+      originalProducts: [
+        {
+          id: 10,
+          productMatrixId: 501,
+          sabor_id: 1,
+          carac_id: 7,
+          name: "Aguardiente Origen Amarillo",
+          caracteristica: "Refrescante",
+          tamano: "L",
+        },
+        {
+          id: 11,
+          productMatrixId: 502,
+          sabor_id: 1,
+          carac_id: 7,
+          name: "Aguardiente Origen Amarillo",
+          caracteristica: "Refrescante",
+          tamano: "S",
+        },
+        {
+          id: 12,
+          productMatrixId: 503,
+          sabor_id: 1,
+          carac_id: 7,
+          name: "Aguardiente Origen Amarillo",
+          caracteristica: "Refrescante",
+          tamano: "M",
+        },
+      ],
+      matrix: {},
+      loadProducts,
+    });
+    useProductsRealtime.mockImplementation(() => {});
+    useSaleRegister.mockReturnValue({
+      register: vi.fn(),
+      showSuccess: vi.fn(),
+    });
+    useCartFlow.mockReturnValue(
+      createCartState({
+        cartItems: [
+          { productMatrixId: 501, quantity: 5 },
+          { productMatrixId: 502, quantity: 3 },
+          { productMatrixId: 503, quantity: 6 },
+        ],
+      }),
+    );
+
+    render(<MainApp />);
+
+    expect(screen.getByTestId("product-10")).toHaveAttribute(
+      "data-badge-count",
+      "14",
+    );
+    expect(screen.getByTestId("product-10")).toHaveAttribute(
+      "data-variant-badges",
+      JSON.stringify([
+        { label: "S", count: 3, tone: 0 },
+        { label: "M", count: 6, tone: 1 },
+        { label: "L", count: 5, tone: 2 },
+      ]),
+    );
   });
 
   it("does not auto-open the cart from CartUpdated while the size modal is active", async () => {

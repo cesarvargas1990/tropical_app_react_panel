@@ -449,4 +449,88 @@ describe("useCartFlow", () => {
       );
     });
   });
+
+  it("resetCart limpia el estado del modal de tamaños y del carrito", async () => {
+    const { result } = setup();
+
+    act(() => {
+      result.current.setSelectedProduct(mockProduct);
+      result.current.setSizeState({
+        __activeSizeId: 1,
+        1: { quantity: 2, toppings: 0, delivery: false },
+      });
+      result.current.setEditIndex(0);
+      result.current.setEditSourceItemIds([7]);
+      result.current.setCartItems([{ id: 7, quantity: 2 }]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.selectedProduct).toEqual(mockProduct);
+      expect(result.current.cartItems).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.resetCart();
+    });
+
+    expect(result.current.selectedProduct).toBe(null);
+    expect(result.current.sizeState).toEqual({});
+    expect(result.current.editIndex).toBe(null);
+    expect(result.current.editSourceItemIds).toEqual([]);
+    expect(result.current.cartItems).toEqual([]);
+  });
+
+  it("permite volver a agregar desde modal manual despues de resetear un carrito con version alta", async () => {
+    const builtItem = {
+      productMatrixId: 33,
+      productName: "Mango",
+      quantity: 1,
+      unitPrice: 3000,
+      toppings: 0,
+      delivery: 0,
+      subtotal: 3000,
+    };
+
+    buildCartItems.mockReturnValue([builtItem]);
+    addCartItems.mockResolvedValue({
+      id: 22,
+      version: 2,
+      status: "active",
+      items: [{ id: 88, ...builtItem }],
+    });
+
+    const { result } = setup();
+
+    act(() => {
+      result.current.hydrateCart({
+        id: 10,
+        version: 7,
+        status: "checked_out",
+        items: [{ id: 51, ...builtItem }],
+      });
+    });
+
+    act(() => {
+      result.current.resetCart();
+      result.current.selectProduct(mockProduct);
+    });
+
+    await act(async () => {
+      await result.current.confirmSizes();
+    });
+
+    expect(addCartItems).toHaveBeenCalledWith({
+      deviceId: "tablet-test",
+      items: [builtItem],
+      source: "manual",
+    });
+    expect(result.current.cartVersion).toBe(2);
+    expect(result.current.cartItems).toEqual([
+      expect.objectContaining({
+        id: 88,
+        quantity: 1,
+        subtotal: 3000,
+      }),
+    ]);
+  });
 });
