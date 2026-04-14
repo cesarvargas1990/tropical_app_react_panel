@@ -100,7 +100,7 @@ describe("useAuth", () => {
   it("sanitiza el nombre del usuario antes de guardarlo en storage", async () => {
     authService.apiLogin.mockResolvedValue({
       token: "token-session",
-      user: { id: 8, name: '  <Ana<script>>\n  ' },
+      user: { id: 8, name: "  <Ana<script>>\n  " },
     });
     const { result } = renderHook(() => useAuth());
 

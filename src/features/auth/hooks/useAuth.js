@@ -37,8 +37,8 @@ function getStoredToken() {
 function getStoredUserName() {
   return sanitizeUserName(
     localStorage.getItem(AUTH_USER_NAME_KEY) ??
-    sessionStorage.getItem(AUTH_USER_NAME_KEY) ??
-    "",
+      sessionStorage.getItem(AUTH_USER_NAME_KEY) ??
+      "",
   );
 }
 
