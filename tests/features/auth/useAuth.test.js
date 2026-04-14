@@ -97,6 +97,36 @@ describe("useAuth", () => {
     expect(localStorage.getItem("auth_token")).toBeNull();
   });
 
+  it("sanitiza el nombre del usuario antes de guardarlo en storage", async () => {
+    authService.apiLogin.mockResolvedValue({
+      token: "token-session",
+      user: { id: 8, name: '  <Ana<script>>\n  ' },
+    });
+    const { result } = renderHook(() => useAuth());
+
+    await act(async () => {
+      await result.current.login("ana@test.com", "password", false);
+    });
+
+    expect(result.current.userName).toBe("Anascript");
+    expect(sessionStorage.getItem("auth_user_name")).toBe("Anascript");
+  });
+
+  it("sanitiza el nombre hidratado desde validate-token", async () => {
+    sessionStorage.setItem("auth_token", "token-123");
+    authService.apiValidateToken.mockResolvedValue({
+      valid: true,
+      user: { name: "  <Cesar>\nAdmin  " },
+    });
+
+    const { result } = renderHook(() => useAuth());
+
+    await act(async () => {});
+
+    expect(result.current.userName).toBe("Cesar Admin");
+    expect(sessionStorage.getItem("auth_user_name")).toBe("Cesar Admin");
+  });
+
   it("login fallido maneja el error", async () => {
     authService.apiLogin.mockRejectedValue(
       new Error("Credenciales incorrectas"),

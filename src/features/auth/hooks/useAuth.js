@@ -4,6 +4,16 @@ import { apiLogin, apiValidateToken } from "../services/authService";
 const AUTH_TOKEN_KEY = "auth_token";
 const AUTH_USER_NAME_KEY = "auth_user_name";
 
+function sanitizeUserName(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+}
+
 function getStorageWithToken() {
   if (localStorage.getItem(AUTH_TOKEN_KEY)) {
     return localStorage;
@@ -25,10 +35,10 @@ function getStoredToken() {
 }
 
 function getStoredUserName() {
-  return (
+  return sanitizeUserName(
     localStorage.getItem(AUTH_USER_NAME_KEY) ??
     sessionStorage.getItem(AUTH_USER_NAME_KEY) ??
-    ""
+    "",
   );
 }
 
@@ -42,11 +52,12 @@ function clearAuthStorage() {
 function persistAuth(token, userName, rememberMe) {
   const targetStorage = rememberMe ? localStorage : sessionStorage;
   const staleStorage = rememberMe ? sessionStorage : localStorage;
+  const safeUserName = sanitizeUserName(userName);
 
   staleStorage.removeItem(AUTH_TOKEN_KEY);
   staleStorage.removeItem(AUTH_USER_NAME_KEY);
   targetStorage.setItem(AUTH_TOKEN_KEY, token);
-  targetStorage.setItem(AUTH_USER_NAME_KEY, userName);
+  targetStorage.setItem(AUTH_USER_NAME_KEY, safeUserName);
 }
 
 /**
@@ -69,9 +80,9 @@ export function useAuth() {
       return;
     }
 
-    const storedUserName = String(
+    const storedUserName = sanitizeUserName(
       storage?.getItem(AUTH_USER_NAME_KEY) ?? "",
-    ).trim();
+    );
 
     if (storedUserName) {
       return;
@@ -85,9 +96,9 @@ export function useAuth() {
           return;
         }
 
-        const resolvedUserName = String(
+        const resolvedUserName = sanitizeUserName(
           user?.name ?? user?.email ?? user?.username ?? "",
-        ).trim();
+        );
 
         storage?.setItem(AUTH_USER_NAME_KEY, resolvedUserName);
         setUserName(resolvedUserName);
@@ -114,9 +125,9 @@ export function useAuth() {
 
     try {
       const { token, user } = await apiLogin(email, password);
-      const resolvedUserName = String(
+      const resolvedUserName = sanitizeUserName(
         user?.name ?? user?.email ?? user?.username ?? "",
-      ).trim();
+      );
 
       persistAuth(token, resolvedUserName, rememberMe);
       setUserName(resolvedUserName);
