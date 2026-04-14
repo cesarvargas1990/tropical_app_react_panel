@@ -54,6 +54,12 @@ function resolveDirectAccessGroupName(product) {
   );
 }
 
+function resolveDirectAccessGroupSpan(itemsCount) {
+  if (itemsCount >= 3) return 3;
+  if (itemsCount === 2) return 2;
+  return 1;
+}
+
 function buildBaseProductKey(flavorId, featureId) {
   if (flavorId == null || featureId == null) return "";
   return `${String(flavorId)}-${String(featureId)}`;
@@ -413,6 +419,31 @@ function MainApp({ userName = "" }) {
       />
 
       <main className="main">
+        <div className="product-search-bar">
+          <button
+            type="button"
+            className="product-search-display"
+            onClick={() => setShowSearchKeyboard(true)}
+            aria-label="Buscar producto"
+          >
+            <span className="product-search-label">Buscar producto</span>
+            <span className="product-search-value">
+              {searchQuery ||
+                "Toca para buscar un producto con el teclado en pantalla"}
+            </span>
+          </button>
+
+          {searchQuery ? (
+            <button
+              type="button"
+              className="btn-secondary product-search-clear"
+              onClick={() => setSearchQuery("")}
+            >
+              Limpiar
+            </button>
+          ) : null}
+        </div>
+
         {directAccessProducts.length ? (
           <section className="direct-access-section">
             <div className="direct-access-header">
@@ -421,10 +452,15 @@ function MainApp({ userName = "" }) {
 
             <div className="direct-access-groups">
               {Object.entries(directAccessGroups).map(([groupName, items]) => (
-                <section key={groupName} className="direct-access-group">
+                <section
+                  key={groupName}
+                  className={`direct-access-group direct-access-group-span-${resolveDirectAccessGroupSpan(items.length)}`}
+                >
                   <h3 className="direct-access-group-title">{groupName}</h3>
 
-                  <div className="direct-access-grid">
+                  <div
+                    className={`direct-access-grid direct-access-grid-cols-${resolveDirectAccessGroupSpan(items.length)}`}
+                  >
                     {items.map((product) => {
                       const productKey = String(
                         product.productMatrixId ?? product.id ?? "",
@@ -474,31 +510,6 @@ function MainApp({ userName = "" }) {
             </div>
           </section>
         ) : null}
-
-        <div className="product-search-bar">
-          <button
-            type="button"
-            className="product-search-display"
-            onClick={() => setShowSearchKeyboard(true)}
-            aria-label="Buscar producto"
-          >
-            <span className="product-search-label">Buscar producto</span>
-            <span className="product-search-value">
-              {searchQuery ||
-                "Toca para buscar un producto con el teclado en pantalla"}
-            </span>
-          </button>
-
-          {searchQuery ? (
-            <button
-              type="button"
-              className="btn-secondary product-search-clear"
-              onClick={() => setSearchQuery("")}
-            >
-              Limpiar
-            </button>
-          ) : null}
-        </div>
 
         <div className="product-panel">
           {filteredProducts.map((p) => (
