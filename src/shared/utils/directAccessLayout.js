@@ -5,8 +5,12 @@ export function resolveDirectAccessGroupSpan(itemsCount) {
 }
 
 function resolvePairSpans(firstGroup, secondGroup) {
-  const firstNaturalSpan = resolveDirectAccessGroupSpan(firstGroup.items.length);
-  const secondNaturalSpan = resolveDirectAccessGroupSpan(secondGroup.items.length);
+  const firstNaturalSpan = resolveDirectAccessGroupSpan(
+    firstGroup.items.length,
+  );
+  const secondNaturalSpan = resolveDirectAccessGroupSpan(
+    secondGroup.items.length,
+  );
 
   if (firstNaturalSpan === 1 && secondNaturalSpan === 1) {
     return [2, 1];
@@ -66,7 +70,9 @@ export function buildDirectAccessGroupLayouts(groupEntries) {
       remaining === 3 &&
       groups
         .slice(index, index + 3)
-        .every((group) => resolveDirectAccessGroupSpan(group.items.length) === 1)
+        .every(
+          (group) => resolveDirectAccessGroupSpan(group.items.length) === 1,
+        )
     ) {
       for (const group of groups.slice(index, index + 3)) {
         layouts.push({
