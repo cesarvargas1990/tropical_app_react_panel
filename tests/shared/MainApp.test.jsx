@@ -219,7 +219,7 @@ describe("MainApp", () => {
 
     render(<MainApp />);
 
-    expect(await screen.findByText("Granizados")).toBeInTheDocument();
+    expect(await screen.findByText("Acceso Directo")).toBeInTheDocument();
     expect(screen.getByText("Refrescante")).toBeInTheDocument();
     expect(screen.getByText("M")).toBeInTheDocument();
     expect(screen.getByText("L")).toBeInTheDocument();
@@ -280,13 +280,13 @@ describe("MainApp", () => {
       expect(getDirectAccessProductsConfig).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.queryByText("Granizados")).not.toBeInTheDocument();
+    expect(screen.queryByText("Acceso Directo")).not.toBeInTheDocument();
 
     await act(async () => {
       await realtimeArgs.onDirectAccessReload();
     });
 
-    expect(await screen.findByText("Granizados")).toBeInTheDocument();
+    expect(await screen.findByText("Acceso Directo")).toBeInTheDocument();
     expect(screen.getByText("Refrescante")).toBeInTheDocument();
   });
 

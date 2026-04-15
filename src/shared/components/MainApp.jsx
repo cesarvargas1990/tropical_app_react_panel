@@ -442,7 +442,7 @@ function MainApp({ userName = "" }) {
         {directAccessProducts.length ? (
           <section className="direct-access-section">
             <div className="direct-access-header">
-              <h2 className="direct-access-title">Granizados</h2>
+              <h2 className="direct-access-title">Acceso Directo</h2>
             </div>
 
             <div className="direct-access-groups">
