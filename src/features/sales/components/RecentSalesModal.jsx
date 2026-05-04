@@ -94,7 +94,6 @@ export function RecentSalesModal({ onClose }) {
           <table className="recent-table">
             <thead>
               <tr>
-                <th>Máquina</th>
                 <th>Sabor</th>
                 <th>Característica</th>
                 <th>Tamaño</th>
@@ -114,7 +113,6 @@ export function RecentSalesModal({ onClose }) {
                         : undefined
                   }
                 >
-                  <td>{sale.machine}</td>
                   <td>{sale.flavor}</td>
                   <td>{sale.feature}</td>
                   <td>{sale.size}</td>

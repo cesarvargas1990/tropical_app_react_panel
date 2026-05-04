@@ -77,7 +77,7 @@ export function buildCartItems({
       delivery: deliveryTotal,
       subtotal,
       machineId: match?.machineId ?? null,
-      machineName: match?.machineName ?? match?.machine ?? "Sin máquina",
+      machineName: match?.machineName ?? match?.machine ?? "",
       maquinaConfId: match?.maquinaConfId ?? null,
       productMatrixId: match?.productMatrixId ?? null,
     });

@@ -18,7 +18,6 @@ describe("RecentSalesModal", () => {
   const sampleSales = [
     {
       id: 1,
-      machine: "A1",
       flavor: "Mango",
       feature: "Frozen",
       size: "L",
@@ -41,7 +40,7 @@ describe("RecentSalesModal", () => {
     expect(getSalesEventName).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
-      expect(screen.getByText("A1")).toBeInTheDocument();
+      expect(screen.queryByText("Máquina")).not.toBeInTheDocument();
       expect(screen.getByText("Mango")).toBeInTheDocument();
       expect(screen.getByText("3")).toBeInTheDocument();
     });

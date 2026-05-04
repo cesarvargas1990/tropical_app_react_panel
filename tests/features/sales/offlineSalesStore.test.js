@@ -219,7 +219,7 @@ describe("offlineSalesStore", () => {
     );
   });
 
-  it("usa un fallback consistente de tanque cuando solo existe machineId", () => {
+  it("no muestra fallback de maquina cuando solo existe machineId", () => {
     rememberSaleLocally([
       {
         productMatrixId: 16,
@@ -234,7 +234,7 @@ describe("offlineSalesStore", () => {
 
     expect(sales[0]).toEqual(
       expect.objectContaining({
-        machine: "Tanque 1",
+        machine: "",
         flavor: "Refrescante",
         feature: "Refrescante",
       }),

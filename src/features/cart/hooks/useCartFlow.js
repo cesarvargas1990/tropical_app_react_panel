@@ -140,17 +140,16 @@ export function useCartFlow({
         match?.caracteristica ??
         parsedProductName.feature ??
         "";
-      const machineId = item.machineId ?? match?.machineId ?? null;
       const machineName =
         item.machineName ??
         item.machine ??
         match?.machineName ??
         match?.machine ??
-        (machineId ? `Tanque ${machineId}` : "Sin máquina");
+        "";
 
       return {
         ...item,
-        machineId,
+        machineId: item.machineId ?? match?.machineId ?? null,
         machineName,
         baseName: item.baseName ?? flavor,
         flavor,
@@ -446,7 +445,7 @@ export function useCartFlow({
         id: `optimistic-${productMatrixId}-${optimisticItemCounter}`,
         productMatrixId,
         machineId: product?.machineId ?? null,
-        machineName: product?.machineName ?? product?.machine ?? "Sin máquina",
+        machineName: product?.machineName ?? product?.machine ?? "",
         maquinaConfId: product?.maquinaConfId ?? null,
         baseName: flavor,
         flavor,

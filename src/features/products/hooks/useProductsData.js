@@ -37,8 +37,8 @@ export function useProductsData(getProductsFn) {
         if (!acc[key]) {
           acc[key] = {
             id: key,
-            machineId: item.machineId,
-            machineName: item.machineName,
+            machineId: item.machineId ?? null,
+            machineName: item.machineName ?? "",
             sabor_id: item.sabor_id,
             carac_id: item.carac_id,
             name: resolveProductName(item),

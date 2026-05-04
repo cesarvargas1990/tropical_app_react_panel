@@ -133,15 +133,10 @@ function normalizeVisibleSaleRow(row) {
   const parsed = extractFlavorFeatureFromProductName(
     row?.productName ?? row?.flavor ?? "",
   );
-  const machineId = row?.machineId ?? null;
   const sortSource = row?.__sortDate ?? row?.fecha_hora ?? row?.date ?? "";
   const normalized = {
     ...row,
-    machine:
-      row?.machine ??
-      row?.machineName ??
-      row?.machineLabel ??
-      (machineId ? `Tanque ${machineId}` : "Sin máquina"),
+    machine: row?.machine ?? row?.machineName ?? row?.machineLabel ?? "",
     flavor:
       row?.flavor ??
       parsed.flavor ??
@@ -223,15 +218,9 @@ function normalizeSaleItemSnapshot(item) {
   const parsed = extractFlavorFeatureFromProductName(
     item?.productName ?? item?.flavor ?? item?.baseName ?? "",
   );
-  const machineId = item?.machineId ?? null;
-
   return {
     ...item,
-    machineName:
-      item?.machineName ??
-      item?.machine ??
-      item?.machineLabel ??
-      (machineId ? `Tanque ${machineId}` : "Sin máquina"),
+    machineName: item?.machineName ?? item?.machine ?? item?.machineLabel ?? "",
     baseName:
       item?.baseName ?? parsed.flavor ?? item?.productName ?? "Producto",
     flavor:
