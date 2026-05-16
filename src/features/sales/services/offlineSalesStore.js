@@ -12,6 +12,7 @@ const PENDING_SALES_KEY = "tropical.pendingSales.queue.v1";
 const SALES_EVENT_NAME = "tropical-offline-sales-updated";
 const MAX_LATEST_SALES = 30;
 const SALES_TIME_ZONE = "America/Bogota";
+const SALES_TIME_ZONE_UTC_OFFSET_MINUTES = -300;
 let syncPendingSalesPromise = null;
 
 function dispatchSalesUpdate() {
@@ -44,6 +45,29 @@ function normalizeQuantity(value) {
   return Number(value ?? 0);
 }
 
+function parseSalesTimeZoneTimestamp(value) {
+  const match = String(value ?? "")
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const [, year, month, day, hour, minute, second = "0"] = match;
+  return (
+    Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    ) -
+    SALES_TIME_ZONE_UTC_OFFSET_MINUTES * 60 * 1000
+  );
+}
+
 function normalizeDate(value) {
   if (!value) {
     return formatSaleDate(new Date());
@@ -54,6 +78,11 @@ function normalizeDate(value) {
   }
 
   const raw = String(value).trim();
+  const salesTimeZoneTimestamp = parseSalesTimeZoneTimestamp(raw);
+
+  if (salesTimeZoneTimestamp !== null) {
+    return formatSaleDate(new Date(salesTimeZoneTimestamp));
+  }
 
   if (/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})\s+(AM|PM)$/i.test(raw)) {
     return raw;
@@ -77,6 +106,12 @@ function parseSaleDate(value) {
   }
 
   const raw = String(value).trim();
+  const salesTimeZoneTimestamp = parseSalesTimeZoneTimestamp(raw);
+
+  if (salesTimeZoneTimestamp !== null) {
+    return salesTimeZoneTimestamp;
+  }
+
   const nativeValue = Date.parse(raw);
   if (!Number.isNaN(nativeValue)) {
     return nativeValue;
@@ -134,6 +169,7 @@ function normalizeVisibleSaleRow(row) {
     row?.productName ?? row?.flavor ?? "",
   );
   const sortSource = row?.__sortDate ?? row?.fecha_hora ?? row?.date ?? "";
+  const salesTimeZoneSortTimestamp = parseSalesTimeZoneTimestamp(sortSource);
   const normalized = {
     ...row,
     machine: row?.machine ?? row?.machineName ?? row?.machineLabel ?? "",
@@ -149,10 +185,15 @@ function normalizeVisibleSaleRow(row) {
     date: normalizeDate(row?.date ?? row?.fecha_hora ?? row?.__sortDate ?? ""),
   };
 
-  normalized.__sortDate =
-    sortSource instanceof Date || !Number.isNaN(Date.parse(String(sortSource)))
-      ? new Date(sortSource).toISOString()
-      : sortSource;
+  if (sortSource instanceof Date) {
+    normalized.__sortDate = sortSource.toISOString();
+  } else if (salesTimeZoneSortTimestamp !== null) {
+    normalized.__sortDate = new Date(salesTimeZoneSortTimestamp).toISOString();
+  } else if (!Number.isNaN(Date.parse(String(sortSource)))) {
+    normalized.__sortDate = new Date(sortSource).toISOString();
+  } else {
+    normalized.__sortDate = sortSource;
+  }
 
   normalized.__unsynced = row?.__unsynced === true;
   normalized.__offline =
