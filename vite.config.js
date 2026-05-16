@@ -16,6 +16,8 @@ export default defineConfig({
         "src/test/**",
         "**/*.config.js",
         "**/*.config.mjs",
+        "**/*.config.ts",
+        "**/*.config.mts",
         "**/*.test.js",
         "**/*.test.jsx",
         "coverage/**",
