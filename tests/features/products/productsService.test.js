@@ -64,4 +64,31 @@ describe("productsService - getProducts", () => {
     expect(api.get).toHaveBeenCalledWith("/api/products/direct-access");
     expect(result).toEqual({ productMatrixIds: [334, 336, 338] });
   });
+
+  it("retorna cache local de acceso directo si la API falla por red", async () => {
+    const cachedConfig = { productMatrixIds: [101, 202] };
+    writeJsonStorage("tropical.directAccessProducts.cache.v1", cachedConfig);
+    api.get.mockRejectedValueOnce(new Error("Network error"));
+
+    const result = await getDirectAccessProductsConfig();
+
+    expect(api.get).toHaveBeenCalledWith("/api/products/direct-access");
+    expect(result).toEqual(cachedConfig);
+  });
+
+  it("retorna configuracion vacia de acceso directo si no hay cache local", async () => {
+    api.get.mockRejectedValueOnce(new Error("Network error"));
+
+    const result = await getDirectAccessProductsConfig();
+
+    expect(result).toEqual({ productMatrixIds: [] });
+  });
+
+  it("propaga errores de acceso directo que no son fallos de red", async () => {
+    const error = new Error("Forbidden");
+    error.response = { status: 403 };
+    api.get.mockRejectedValueOnce(error);
+
+    await expect(getDirectAccessProductsConfig()).rejects.toThrow("Forbidden");
+  });
 });

@@ -207,4 +207,13 @@ describe("SizeModal", () => {
       }),
     );
   });
+
+  it("opens the toppings keypad from keyboard interactions", () => {
+    renderModal();
+
+    const display = screen.getByTestId(`toppings-global-${baseSize.id}`);
+    fireEvent.keyDown(display, { key: "Enter" });
+
+    expect(screen.getByText(/Ingrese valor topping/i)).toBeInTheDocument();
+  });
 });

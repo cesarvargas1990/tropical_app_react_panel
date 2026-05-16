@@ -140,4 +140,78 @@ describe("RecentSalesModal", () => {
       expect(rows[2]).toHaveTextContent("M");
     });
   });
+
+  it("orders fallback formatted dates and ignores invalid dates", async () => {
+    getLatestSales.mockResolvedValue([
+      {
+        id: 1,
+        flavor: "Sin fecha",
+        feature: "",
+        size: "S",
+        quantity: 1,
+        date: "",
+      },
+      {
+        id: 2,
+        flavor: "Medianoche",
+        feature: "",
+        size: "M",
+        quantity: 1,
+        date: "13/04/2026 12:05 AM",
+      },
+      {
+        id: 3,
+        flavor: "Tarde",
+        feature: "",
+        size: "L",
+        quantity: 1,
+        date: "13/04/2026 12:05 PM",
+      },
+    ]);
+
+    render(<RecentSalesModal onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole("row");
+      expect(rows[1]).toHaveTextContent("Tarde");
+      expect(rows[2]).toHaveTextContent("Medianoche");
+      expect(rows[3]).toHaveTextContent("Sin fecha");
+    });
+  });
+
+  it("reloads sales when browser connectivity or offline sales events change", async () => {
+    getLatestSales
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          id: 10,
+          flavor: "Online",
+          feature: "",
+          size: "M",
+          quantity: 1,
+          date: "2026-04-13",
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 11,
+          flavor: "Evento",
+          feature: "",
+          size: "L",
+          quantity: 2,
+          date: "2026-04-14",
+        },
+      ]);
+
+    render(<RecentSalesModal onClose={vi.fn()} />);
+
+    await waitFor(() => expect(getLatestSales).toHaveBeenCalledTimes(1));
+
+    window.dispatchEvent(new Event("online"));
+    expect(await screen.findByText("Online")).toBeInTheDocument();
+
+    window.dispatchEvent(new Event("tropical-offline-sales-updated"));
+    expect(await screen.findByText("Evento")).toBeInTheDocument();
+    expect(getLatestSales).toHaveBeenCalledTimes(3);
+  });
 });
