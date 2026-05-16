@@ -370,6 +370,51 @@ describe("offlineSalesStore", () => {
     );
   });
 
+  it("reemplaza la fila local sincronizada cuando llega la misma venta del backend", () => {
+    rememberSaleLocally(
+      [
+        {
+          productMatrixId: 334,
+          quantity: 2,
+          productName: "Refrescante (Refrescante)",
+          sizeLabel: "S",
+          machineName: "",
+        },
+      ],
+      {
+        id: "pending-cc0825407e23ed60fade5a13783bd4b0",
+        createdAt: "2026-05-16T01:49:14.971Z",
+      },
+    );
+
+    cacheLatestSales([
+      {
+        id: 47403,
+        machine: "Sin maquina",
+        flavor: "Refrescante",
+        feature: "Refrescante",
+        size: "S",
+        quantity: 2,
+        fecha_hora: "2026-05-15 20:49:14",
+        offline: 0,
+      },
+    ]);
+
+    const sales = readCachedLatestSales();
+
+    expect(sales).toHaveLength(1);
+    expect(sales[0]).toEqual(
+      expect.objectContaining({
+        id: 47403,
+        machine: "Sin maquina",
+        flavor: "Refrescante",
+        feature: "Refrescante",
+        size: "S",
+        quantity: 2,
+      }),
+    );
+  });
+
   it("mantiene visibles las ventas anteriores al registrar nuevas ventas offline", () => {
     cacheLatestSales([
       {

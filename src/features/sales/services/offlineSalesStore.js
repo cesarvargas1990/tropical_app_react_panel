@@ -205,6 +205,23 @@ function saleRowIdentity(row) {
   ]);
 }
 
+function saleRowSyncedIdentity(row) {
+  const timestamp = parseSaleDate(
+    row.__sortDate ?? row.fecha_hora ?? row.date ?? "",
+  );
+  const minuteBucket = timestamp
+    ? Math.floor(timestamp / 60000)
+    : (row.date ?? "");
+
+  return JSON.stringify([
+    row.flavor ?? "",
+    row.feature ?? "",
+    row.size ?? "",
+    normalizeQuantity(row.quantity),
+    minuteBucket,
+  ]);
+}
+
 function extractFlavorFeatureFromProductName(value) {
   const { flavor, feature } = parseProductNameParts(value);
 
@@ -280,12 +297,18 @@ function mergeVisibleSales(serverSales = [], localRows = []) {
     normalizeVisibleSaleRow,
   );
   const serverKeys = new Set(normalizedServerRows.map(saleRowIdentity));
+  const serverSyncedKeys = new Set(
+    normalizedServerRows.map(saleRowSyncedIdentity),
+  );
   const preservedLocalRows = normalizedLocalRows.filter((row) => {
     if (row.__unsynced) {
       return true;
     }
 
-    return !serverKeys.has(saleRowIdentity(row));
+    return (
+      !serverKeys.has(saleRowIdentity(row)) &&
+      !serverSyncedKeys.has(saleRowSyncedIdentity(row))
+    );
   });
 
   return sortSalesDesc([...preservedLocalRows, ...normalizedServerRows]).slice(
