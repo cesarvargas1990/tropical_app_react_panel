@@ -23,4 +23,4 @@ jobs:
             set -e
             cd /home/${{ secrets.SSH_USER }}/tropical_app_react_panel
             git pull
-            docker compose up --build -d
+            docker compose up -d
