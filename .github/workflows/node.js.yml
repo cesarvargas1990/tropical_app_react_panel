@@ -43,7 +43,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
- 
+
       - name: SonarCloud Quality Gate Check
         if: matrix.node-version == '22.x' && env.SONAR_TOKEN != ''
         uses: sonarsource/sonarqube-quality-gate-action@master
