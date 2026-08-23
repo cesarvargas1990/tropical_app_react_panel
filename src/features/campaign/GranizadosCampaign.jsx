@@ -12,7 +12,7 @@ function formatCounter(value) {
 export default function GranizadosCampaign() {
   const [total, setTotal] = useState(0);
   const [status, setStatus] = useState("loading");
-  const [posterSrc, setPosterSrc] = useState("/granizados-ladrillos.png");
+  const [posterSrc, setPosterSrc] = useState("/granizados-ladrillos.webp");
   const digits = useMemo(() => formatCounter(total), [total]);
 
   useEffect(() => {
@@ -61,8 +61,8 @@ export default function GranizadosCampaign() {
           src={posterSrc}
           alt=""
           onError={() => {
-            if (posterSrc !== "/tropical/granizados-ladrillos.png") {
-              setPosterSrc("/tropical/granizados-ladrillos.png");
+            if (posterSrc !== "/tropical/granizados-ladrillos.webp") {
+              setPosterSrc("/tropical/granizados-ladrillos.webp");
             }
           }}
         />
