@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     strategy:
       matrix:
@@ -37,15 +39,16 @@ jobs:
 
       # SonarCloud analysis - solo en la última versión de Node para evitar duplicados
       - name: SonarCloud Scan
-        if: matrix.node-version == '22.x'
+        if: matrix.node-version == '22.x' && env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+ 
       - name: SonarCloud Quality Gate Check
-        if: matrix.node-version == '22.x'
+        if: matrix.node-version == '22.x' && env.SONAR_TOKEN != ''
         uses: sonarsource/sonarqube-quality-gate-action@master
         timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Skip SonarCloud
+        if: matrix.node-version == '22.x' && env.SONAR_TOKEN == ''
+        run: echo "SONAR_TOKEN is not available; skipping SonarCloud scan."
