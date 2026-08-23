@@ -34,7 +34,7 @@ export function buildDirectAccessGroupLayouts(groupEntries) {
   }));
   const layouts = [];
 
-  for (let index = 0; index < groups.length; ) {
+  for (let index = 0; index < groups.length;) {
     const remaining = groups.length - index;
 
     if (remaining === 1) {
