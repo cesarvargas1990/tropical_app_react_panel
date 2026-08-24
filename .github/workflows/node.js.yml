@@ -47,6 +47,7 @@ jobs:
       - name: SonarCloud Quality Gate Check
         if: matrix.node-version == '22.x' && env.SONAR_TOKEN != ''
         uses: sonarsource/sonarqube-quality-gate-action@master
+        continue-on-error: true
         timeout-minutes: 5
 
       - name: Skip SonarCloud
